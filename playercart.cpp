@@ -1,6 +1,7 @@
 #include "playercart.h"
 #include <QPainter>
 
+//slots for players
 playerCart* players[4];
 int playerCart::playersCounter=0;
 
@@ -8,27 +9,66 @@ playerCart::playerCart(QWidget *parent)
     :QWidget(parent)
 {
     playersCounter++;
-    //empty slot cart
-    playerAdded=false;
-    setFrame();
 
-    //label, add player button
+    //new slot cart is empty first(player can be added)
+    playerAdded=false;
+
+    //create frame around player's slot cart
+    set_frame();
+
+    //create empty slots's widgets inside the frame
+    set_emptySlot();
+
+    //connect slot which will react on clicking the button for adding player
+    connect (addButton, SIGNAL(clicked(bool)), this, SLOT(onAddPlayer()));
+}
+
+void playerCart::set_frame()
+{
+    //allocate
+    playerFrame=new QFrame(this);
+    frameLayout=new QVBoxLayout;
+
+    //set frame's look
+    playerFrame->setLayout(frameLayout);
+    playerFrame->setLineWidth(3);
+    playerFrame->setMidLineWidth(3);
+    playerFrame->setFrameStyle(QFrame::Box | QFrame::Raised);
+    playerFrame->show();
+}
+
+void playerCart::set_emptySlot()
+{
+    //emptySlot label, add player button
     QLabel* emptySlot=new QLabel;
+
+    //set emptySlot label's font
     QFont f;
     f.setBold(true);
     f.setPointSize(18);
     emptySlot->setFont(f);
     emptySlot->setText("Empty slot");
+
     addButton=new QPushButton("Add player");
     addButton->setIcon(QIcon(":/images/img/add_player.png"));
     addButton->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
 
-    //adding widgets to layout
+    //add button for adding players and emptySlot label to frame layout
     frameLayout->addWidget(emptySlot, 0, Qt::AlignCenter);
     frameLayout->addWidget(addButton, 0, Qt::AlignCenter);
+}
 
-    //connecting slot add player
-    connect (addButton, SIGNAL(clicked(bool)), this, SLOT(onAddPlayer()));
+//changes player's image
+void playerCart::set_player_image(const QString playerColor)
+{
+    if (playerColor=="red")
+        playerImage->setPixmap(QPixmap(":/images/img/red.png"));
+    else if (playerColor=="blue")
+        playerImage->setPixmap(QPixmap(":/images/img/blue.png"));
+    else if (playerColor=="green")
+        playerImage->setPixmap(QPixmap(":/images/img/red.png"));
+    else if (playerColor=="yellow")
+        playerImage->setPixmap(QPixmap(":/images/img/blue.png"));
 }
 
 void playerCart::paintEvent(QPaintEvent*)
@@ -37,10 +77,6 @@ void playerCart::paintEvent(QPaintEvent*)
     p.fillRect(0, 0, width(), height(), QColor(211, 211, 211));
     //resizing frame
     playerFrame->resize(width(), height());
-    if (playerAdded)
-    {
-        //cart with choosen player
-    }
 }
 
 void playerCart::onAddPlayer()
@@ -48,7 +84,7 @@ void playerCart::onAddPlayer()
     //deleting old layout
     frameLayout->deleteLater();
     playerFrame->deleteLater();
-    setFrame();
+    set_frame();
 
     playerImage=new QLabel;
     nameLabel=new QLabel;
@@ -77,10 +113,10 @@ void playerCart::onAddPlayer()
     nameLabel->setText("Name:");
     colorLabel->setText("Color: ");
     playerImage->setScaledContents(true);
-    setColorBox();
+    set_color_box();
     color=colorBox->currentText();
     connect (colorBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onColorChanged()));
-    setPlayerImage(colorBox->currentText());
+    set_player_image(colorBox->currentText());
 
     //updating combo boxes of others players
     for (int i=0 ; i<playersCounter-1 ; i++)
@@ -98,31 +134,7 @@ void playerCart::onAddPlayer()
     }
 }
 
-void playerCart::setPlayerImage(const QString playerColor)
-{
-    if (playerColor=="red")
-        playerImage->setPixmap(QPixmap(":/images/img/red.png"));
-    else if (playerColor=="blue")
-        playerImage->setPixmap(QPixmap(":/images/img/blue.png"));
-    else if (playerColor=="green")
-        playerImage->setPixmap(QPixmap(":/images/img/red.png"));
-    else if (playerColor=="yellow")
-        playerImage->setPixmap(QPixmap(":/images/img/blue.png"));
-}
-
-
-void playerCart::setFrame()
-{
-    playerFrame=new QFrame(this);
-    frameLayout=new QVBoxLayout;
-    playerFrame->setLayout(frameLayout);
-    playerFrame->setLineWidth(3);
-    playerFrame->setMidLineWidth(3);
-    playerFrame->setFrameStyle(QFrame::Box | QFrame::Raised);
-    playerFrame->show();
-}
-
-void playerCart::setColorBox()
+void playerCart::set_color_box()
 {
     QString colors[4]={"red", "blue", "green", "yellow"};
     int i, j;
@@ -157,7 +169,7 @@ void playerCart::onColorChanged()
         }
     players[i]->color=players[i]->colorBox->currentText();
     //change image
-    players[i]->setPlayerImage(players[i]->color);
+    players[i]->set_player_image(players[i]->color);
 }
 
 //close button clicked

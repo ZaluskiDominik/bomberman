@@ -50,23 +50,38 @@ private:
     //whether or not add player was clicked
     bool playerAdded;
 
-    //player frame
+    //frame around player's slot cart
     QFrame* playerFrame;
     QVBoxLayout* frameLayout;
-    QPushButton* addButton;     //adds player
+
+    //add player button
+    QPushButton* addButton;
+    //close cart button --> remove player's slot
     QPushButton* closeCart;
 
-    //new player
+    //label for player's image
     QLabel* playerImage;
+
+    //labels for player's data
     QLabel *nameLabel, *colorLabel;
+
+    //player can select his color from combo box
     QComboBox* colorBox;
+    //line edit for typying player's name
     QLineEdit* nameEdit;
+
+    //contains player's image, name, color
     QGridLayout* playerData;
 
+    //FUNCTIONS*******************************************************
+    void set_player_image(const QString playerColor);
 
-    void setPlayerImage(const QString playerColor);
-    void setColorBox();
-    void setFrame();
+    //creates combo box with available player's colors
+    void set_color_box();
+
+    void set_frame();
+    //create empty slots's widgets inside the frame
+    void set_emptySlot();
 
 private slots:
     void onAddPlayer();
