@@ -1,10 +1,10 @@
 #include "dialog.h"
-#include "ui_dialog.h"
 #include <QPainter>
 #include <QKeyEvent>
+#include <QCoreApplication>
 
-//carts in play menu
-playerCart* players[4];
+//player slot carts in lobby
+extern playerCart* players[4];
 //game resolution
 QSize screenSize;
 

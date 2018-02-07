@@ -20,11 +20,13 @@ public:
         playersCounter--;
     }
 
+    //return player's color
     QString playerColor()
     {
         return color;
     }
 
+    //return player's name
     QString playerName()
     {
         return name;
@@ -39,8 +41,13 @@ protected:
     void paintEvent(QPaintEvent*);
 
 private:
+    //current number of slots
     static int playersCounter;
+
+    //player's data
     QString name, color;
+
+    //whether or not add player was clicked
     bool playerAdded;
 
     //player frame

@@ -1,7 +1,7 @@
 #include "playercart.h"
 #include <QPainter>
 
-extern playerCart* players[4];
+playerCart* players[4];
 int playerCart::playersCounter=0;
 
 playerCart::playerCart(QWidget *parent)
