@@ -12,7 +12,7 @@
         <file>img/road.jpg</file>
     </qresource>
     <qresource prefix="/sounds">
-        <file>sounds/button click version sound effect  13.mp3</file>
-        <file>sounds/Power Bots Loop.wav</file>
+        <file>sounds/button_click.mp3</file>
+        <file>sounds/menu_music.wav</file>
     </qresource>
 </RCC>

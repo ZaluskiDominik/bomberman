@@ -9,38 +9,60 @@
 #include "playercart.h"
 #include "game.h"
 
-namespace Ui {
-class Dialog;
-}
-
 class Dialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit Dialog(QWidget *parent = 0);
-    ~Dialog();
+    explicit Dialog(QWidget *parent = nullptr);
 
 protected:
     void paintEvent(QPaintEvent*);
     void keyPressEvent(QKeyEvent *e);
 
 private:
-    Ui::Dialog *ui;
-    //menu buttons
-    menuButton* chooseButtons[menuButton::buttons];
-    //box for buttons
+    const int numMenu;
+    //menu buttons(play, settings, quit)
+    menuButton* menuButtons[3];
+
+    //frame for menu buttons
     QFrame* menuFrame;
-    //background music
+
+    //background music player
     QMediaPlayer menuMusic;
+
+    //button to show slider which changes the level of music's volume
     QPushButton* volumeButton;
-    QString currentLocation;    //which menu
+
+    //keep track in which menu user is currently in
+    QString currentLocation;
+
+    //lobby button for starting the game
     QPushButton* startButton;
+
+    //game's window with the graphics scene
     game* gameWnd;
 
-    //display main menu
+    //********FUNCTIONS********
+
+    //create main menu with buttons
     void create_main_manu();
+    //draw main menu
+    void draw_main_menu(QPainter &p);
+    //draw menu buttons
+    void draw_menuButtons();
+
+    //set up music's volume button
+    void setup_volumeButton();
+
+    //clear main menu's window layout
     void erase_main_menu();
+
+    //draw lobby with slots for players
+    void draw_lobby(QPainter &p);
+
+    //clear lobby's window layout
+    void erase_lobby();
 
 private slots:
     //main menu buttons slots
@@ -51,7 +73,10 @@ private slots:
     //music loop
     void onPosChanged();
 
+    //start game
     void onStartGameClicked();
+
+    //game has come to end
     void onGameEnded();
 
 };

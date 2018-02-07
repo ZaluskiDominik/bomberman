@@ -36,8 +36,7 @@ HEADERS += \
     playercart.h \
     game.h
 
-FORMS += \
-        dialog.ui
+FORMS +=
 
 RESOURCES += \
     resources.qrc
