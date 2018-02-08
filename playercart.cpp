@@ -58,8 +58,32 @@ void playerCart::set_emptySlot()
     frameLayout->addWidget(addButton, 0, Qt::AlignCenter);
 }
 
+void playerCart::set_closeButton()
+{
+    closeCart=new QPushButton;
+    //set icon
+    closeCart->setIcon(QIcon(":/images/img/close.png"));
+
+    //set fixed size 16x16
+    closeCart->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    closeCart->setFixedSize(16, 16);
+    closeCart->setIconSize(QSize(16, 16));
+
+    connect (closeCart, SIGNAL(clicked(bool)), this, SLOT(onCartClosed()));
+
+    //add button to frame layout
+    frameLayout->addWidget(closeCart, 0, Qt::AlignRight);
+}
+
+void playerCart::set_playerImage_label()
+{
+    playerImage=new QLabel;
+    playerImage->setScaledContents(true);
+    frameLayout->addWidget(playerImage);
+}
+
 //changes player's image
-void playerCart::set_player_image(const QString playerColor)
+void playerCart::change_player_image(const QString playerColor)
 {
     if (playerColor=="red")
         playerImage->setPixmap(QPixmap(":/images/img/red.png"));
@@ -69,6 +93,39 @@ void playerCart::set_player_image(const QString playerColor)
         playerImage->setPixmap(QPixmap(":/images/img/red.png"));
     else if (playerColor=="yellow")
         playerImage->setPixmap(QPixmap(":/images/img/blue.png"));
+}
+
+//initialize combo box
+void playerCart::set_color_box()
+{
+    colorBox=new QComboBox;
+
+    //set player's color as first available from combo box
+    color=colorBox->currentText();
+
+    //add to frame layout
+    playerData->addWidget(colorBox, 1, 1);
+    //fill with colors
+    add_colors();
+
+    //connect slot reacting on change of color
+    connect (colorBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onColorChanged()));
+}
+
+//ad colors to combo box
+void playerCart::add_colors()
+{
+    QString colors[4]={"red", "blue", "green", "yellow"};
+    int i, j;
+
+    //loop through all colors
+    for (i=0 ; i<4 ; i++)
+    {
+        for (j=0 ; j<playersCounter && players[j]->colorBox->currentText()!=colors[i] ; j++);
+        //if previous players didn't choose that color add it to comco box
+        if (j==playersCounter)
+            colorBox->addItem(colors[i]);
+    }
 }
 
 void playerCart::paintEvent(QPaintEvent*)
@@ -81,42 +138,40 @@ void playerCart::paintEvent(QPaintEvent*)
 
 void playerCart::onAddPlayer()
 {
-    //deleting old layout
+    //delete emptySlot layout
     frameLayout->deleteLater();
     playerFrame->deleteLater();
     set_frame();
 
-    playerImage=new QLabel;
+    //close button
+    set_closeButton();
+    //player image
+    set_playerImage_label();
+
+    //add layout for widgets with player data
+    playerData=new QGridLayout;
+    frameLayout->addLayout(playerData);
+
+    //combo box with colors
+    set_color_box();
+
+    //change player image based on selected color
+    change_player_image(colorBox->currentText());
+
     nameLabel=new QLabel;
     colorLabel=new QLabel;
-    colorBox=new QComboBox;
+
     nameEdit=new QLineEdit;
-    playerData=new QGridLayout;
-    closeCart=new QPushButton;
 
-    //close button
-    closeCart->setIcon(QIcon(":/images/img/close.png"));
-    closeCart->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    closeCart->setFixedSize(16, 16);
-    closeCart->setIconSize(QSize(16, 16));
-    connect (closeCart, SIGNAL(clicked(bool)), this, SLOT(onCartClosed()));
-
-    //adding widgets to frame layout
-    frameLayout->addWidget(closeCart, 0, Qt::AlignRight);
-    frameLayout->addWidget(playerImage);
-    frameLayout->addLayout(playerData);
     playerData->addWidget(nameLabel, 0, 0);
     playerData->addWidget(nameEdit, 0, 1);
     playerData->addWidget(colorLabel, 1, 0);
-    playerData->addWidget(colorBox, 1, 1);
+
 
     nameLabel->setText("Name:");
     colorLabel->setText("Color: ");
-    playerImage->setScaledContents(true);
-    set_color_box();
-    color=colorBox->currentText();
-    connect (colorBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onColorChanged()));
-    set_player_image(colorBox->currentText());
+
+
 
     //updating combo boxes of others players
     for (int i=0 ; i<playersCounter-1 ; i++)
@@ -131,21 +186,6 @@ void playerCart::onAddPlayer()
         //firs cumputing is right side
         players[playersCounter-1]=new playerCart(parentWidget());
         players[playersCounter-1]->show();
-    }
-}
-
-void playerCart::set_color_box()
-{
-    QString colors[4]={"red", "blue", "green", "yellow"};
-    int i, j;
-    for (i=0 ; i<4 ; i++)
-    {
-        for (j=0 ; j<playersCounter && players[j]->colorBox->currentText()!=colors[i] ; j++);
-        if (j==playersCounter)
-        {
-            //adding color to box
-            colorBox->addItem(colors[i]);
-        }
     }
 }
 
@@ -169,7 +209,7 @@ void playerCart::onColorChanged()
         }
     players[i]->color=players[i]->colorBox->currentText();
     //change image
-    players[i]->set_player_image(players[i]->color);
+    players[i]->change_player_image(players[i]->color);
 }
 
 //close button clicked

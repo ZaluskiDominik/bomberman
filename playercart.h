@@ -74,14 +74,22 @@ private:
     QGridLayout* playerData;
 
     //FUNCTIONS*******************************************************
-    void set_player_image(const QString playerColor);
+    void change_player_image(const QString playerColor);
 
-    //creates combo box with available player's colors
+    //creates combo box with colors
     void set_color_box();
+
+    //add colors to combo box that are available to choose
+    void add_colors();
 
     void set_frame();
     //create empty slots's widgets inside the frame
     void set_emptySlot();
+
+    //creates button for deleting player cart
+    void set_closeButton();
+
+    void set_playerImage_label();
 
 private slots:
     void onAddPlayer();
