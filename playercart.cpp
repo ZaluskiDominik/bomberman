@@ -82,6 +82,19 @@ void playerCart::set_playerImage_label()
     frameLayout->addWidget(playerImage);
 }
 
+void playerCart::set_playerData_labels()
+{
+    //name label
+    nameLabel=new QLabel;
+    nameLabel->setText("Name:");
+    playerData->addWidget(nameLabel, 0, 0);
+
+    //color label
+    colorLabel=new QLabel;
+    colorLabel->setText("Color: ");
+    playerData->addWidget(colorLabel, 1, 0);
+}
+
 //changes player's image
 void playerCart::change_player_image(const QString playerColor)
 {
@@ -100,13 +113,13 @@ void playerCart::set_color_box()
 {
     colorBox=new QComboBox;
 
-    //set player's color as first available from combo box
-    color=colorBox->currentText();
-
     //add to frame layout
     playerData->addWidget(colorBox, 1, 1);
     //fill with colors
     add_colors();
+
+    //set player's color as first available from combo box
+    color=colorBox->currentText();
 
     //connect slot reacting on change of color
     connect (colorBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onColorChanged()));
@@ -136,6 +149,9 @@ void playerCart::paintEvent(QPaintEvent*)
     playerFrame->resize(width(), height());
 }
 
+//SLOTS
+//*******************************************************************************************************
+
 void playerCart::onAddPlayer()
 {
     //delete emptySlot layout
@@ -158,32 +174,26 @@ void playerCart::onAddPlayer()
     //change player image based on selected color
     change_player_image(colorBox->currentText());
 
-    nameLabel=new QLabel;
-    colorLabel=new QLabel;
+    //label for player's data
+    set_playerData_labels();
 
+    //line edit for typing player's name
     nameEdit=new QLineEdit;
-
-    playerData->addWidget(nameLabel, 0, 0);
     playerData->addWidget(nameEdit, 0, 1);
-    playerData->addWidget(colorLabel, 1, 0);
-
-
-    nameLabel->setText("Name:");
-    colorLabel->setText("Color: ");
-
-
-
-    //updating combo boxes of others players
-    for (int i=0 ; i<playersCounter-1 ; i++)
-        players[i]->colorBox->removeItem(players[i]->colorBox->findText(this->colorBox->currentText()));
-
-    //connecting line edit with name to slot
+    //receive signal after user end typying
     connect (nameEdit, SIGNAL(editingFinished()), this, SLOT(onNameEntered()));
 
+    //updating combo boxes of others players(other player can't choose the color of this player)
+    for (int i=0 ; i<playersCounter-1 ; i++)
+        players[i]->colorBox->removeItem(players[i]->colorBox->findText(color));
+
+    //mark this cart as taken by player
     playerAdded=true;
+    //if all players carts are less than 4 create new emptySlot cart
     if (playersCounter<4)
     {
-        //firs cumputing is right side
+        //right side will be calculated first, so the variable playersCounter will be incremented
+        //it's why left side array's index is playersCounter-1
         players[playersCounter-1]=new playerCart(parentWidget());
         players[playersCounter-1]->show();
     }
@@ -192,23 +202,29 @@ void playerCart::onAddPlayer()
 //combo box index changed
 void playerCart::onColorChanged()
 {
-    int i;
+    int i, j;
     for (i=0 ; players[i]->colorBox!=qobject_cast<QComboBox*>(sender()) ; i++);
-    //checking if remove didnt triggered index change
+
+    //check if removing player's cart didnt trigger index change
     if (players[i]->colorBox->currentText()==players[i]->color)
         return;
 
-    for (int j=0 ; j<playersCounter ; j++)
+    for (j=0 ; j<playersCounter ; j++)
+    {
         if (j!=i && players[j]->playerAdded)
         {
-            //deleting sender's new color color from combo boxes
+            //delete from other players' combo boxex the color which senderPlayer selected
             int index=players[j]->colorBox->findText(players[i]->colorBox->currentText());
             players[j]->colorBox->removeItem(index);
-            //adding new color - old color of sender
+
+            //add old color of senderPlayer to other players' combo boxes
             players[j]->colorBox->addItem(players[i]->color);
         }
+    }
+
+    //set new player's color
     players[i]->color=players[i]->colorBox->currentText();
-    //change image
+    //change player's image
     players[i]->change_player_image(players[i]->color);
 }
 
@@ -216,37 +232,52 @@ void playerCart::onColorChanged()
 void playerCart::onCartClosed()
 {
     QPushButton *sigSender=qobject_cast<QPushButton*>(sender());
-    playerCart* cart;
+    playerCart* cartToDelete;
     int j, i;
-    //which cart will be deleted
-    for (i=0 ; players[i]->closeCart!=sigSender ; i++);
-    cart=players[i];
 
+    //find array's index of player's cart which will be deleted
+    for (i=0 ; players[i]->closeCart!=sigSender ; i++);
+    //save cart to futher delete
+    cartToDelete=players[i];
+
+    //move all carts with indexes greater than the index of cart that will be deleted one position left in array
     for (j=i ; j+1<playersCounter ; j++)
         players[j]=players[j+1];
 
+    //if all players' slots were taken
     if (playersCounter==4 && players[3]->playerAdded)
     {
+        //add new empty cart
         players[3]=new playerCart(parentWidget());
         players[3]->show();
     }
-    //adding deleted color to combo boxes
-    for (i=0 ; i<playersCounter-2 ; i++)
-        players[i]->colorBox->addItem(cart->colorBox->currentText());
 
-    cart->deleteLater();
+    //add deleted player's color to other players combo boxes
+    for (i=0 ; i<playersCounter-2 ; i++)
+        players[i]->colorBox->addItem(cartToDelete->colorBox->currentText());
+
+    //delete the player's cart
+    cartToDelete->deleteLater();
 }
 
 void playerCart::onNameEntered()
 {
     int i, j;
+    //who is the sender of this signal
     QLineEdit* sigSender=qobject_cast<QLineEdit*>(sender());
+    //find his index in players array
     for (j=0 ; players[j]->nameEdit!=sigSender ; j++);
 
-    for (i=0 ; i<playersCounter-1 && players[j]->name!=players[i]->nameEdit->text(); i++);
-    if (i==playersCounter-1)
+    //check if other player didn't already chose that name
+    for (i=0 ; i<playersCounter && players[i]->playerAdded; i++)
     {
-        //other player already has this name
-        sigSender->setText(players[j]->name);
+        if (players[i]->name==players[j]->nameEdit->text() && i!=j )
+        {
+            //that name is already taken, restore previous name
+            sigSender->setText(players[j]->name);
+            return;
+        }
     }
+    //change this player name
+    players[j]->name=sigSender->text();
 }
