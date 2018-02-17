@@ -11,9 +11,9 @@ player::player(const playerData& data, QGraphicsScene *scene)
     name=data.name;
     color=data.color;
 
-    movingTime=50;
-    currDir=-1;
+    movingTime=20;
 
+    //ad player to scene
     setup_player(scene);
 
     QObject::connect(&moveTimer, SIGNAL(timeout()), this, SLOT(onMoveTimeout()));
@@ -23,8 +23,10 @@ void player::move_player(int key)
 {
     if (key==keys.up || key==keys.down || key==keys.left || key==keys.right)
     {
-        currDir=key;
-        moveTimer.start(movingTime);
+        currDir.append(key);
+        //start timer if this was first key
+        if (currDir.size()==1)
+            moveTimer.start(movingTime);
     }
     else if (key==keys.bomb)
     {
@@ -34,11 +36,14 @@ void player::move_player(int key)
 
 void player::reset_direction(int key)
 {
-    if (key==currDir)
+    /*if (key==currDir)
     {
         currDir=-1;
         moveTimer.stop();
-    }
+    }*/
+    if (currDir.removeOne(key))
+        if (currDir.empty())
+            moveTimer.stop();
 }
 
 void player::setup_player(QGraphicsScene* scene)
@@ -64,12 +69,31 @@ void player::setup_player(QGraphicsScene* scene)
 
 void player::onMoveTimeout()
 {
-    if (currDir==keys.up)
+    /*if (currDir==keys.up)
         setY(y() - 10);
     else if (currDir==keys.down)
         setY(y() + 10);
     else if (currDir==keys.left)
         setX(x() - 10);
     else if (currDir==keys.right)
-        setX(x() + 10);
+        setX(x() + 10);*/
+    int passX=0, passY=0;
+    for (auto i=currDir.begin() ; i!=currDir.end() ; i++)
+    {
+        if (*i==keys.up || *i==keys.down)
+            passY++;
+        if (*i==keys.left || *i==keys.right)
+            passX++;
+    }
+    if (passY==2 || passX==2)
+        return;                 //stop moving
+
+    if (currDir.first()==keys.up)
+        setY(y() - 3);
+    else if (currDir.first()==keys.down)
+        setY(y() + 3);
+    else if (currDir.first()==keys.left)
+        setX(x() - 3);
+    else if (currDir.first()==keys.right)
+        setX(x() + 3);
 }

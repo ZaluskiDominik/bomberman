@@ -84,7 +84,7 @@ QPixmap game::getFieldPixmap(fieldType name, int size)
 
 bool game::load_map()
 {
-    QFile file("field.txt");
+    QFile file("map.txt");
     QString line;
 
     if (!file.open(QIODevice::ReadOnly))
