@@ -5,8 +5,6 @@
 
 //player slot carts in lobby
 extern playerCart* players[4];
-//game resolution
-QSize screenSize;
 
 Dialog::Dialog(QWidget *parent) :
     QDialog(parent, Qt::WindowCloseButtonHint | Qt::WindowTitleHint), numMenu(3)
@@ -206,16 +204,35 @@ void Dialog::erase_lobby()
     startButton->deleteLater();
 }
 
+void Dialog::export_playersData(playerData* playersData)
+{
+    for (int i=0 ; i<playerCart::playersAddedCount() ; i++)
+    {
+        playersData[i].color=players[i]->playerColor();
+        playersData[i].name=players[i]->playerName();
+    }
+}
+
 //***********************************************************
 
-//beging game
+//begin game
 void Dialog::onStartGameClicked()
 {
+    //if number of players is less than 2 return
+    if (playerCart::playersAddedCount()<2)
+        return;
+
     //hide main menu's window
     hide();
 
+    //stop music
+    menuMusic.stop();
+
+    playerData playersData[playerCart::playersAddedCount()];
+    export_playersData(playersData);
+
     //shown game's window
-    gameWnd=new game(this, QSize(1000, 800));
+    gameWnd=new game(this, QSize(1000, 600), playersData, playerCart::playersAddedCount());
     gameWnd->show();
 
     //connect slot witch will react on end of game

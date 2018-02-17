@@ -18,6 +18,7 @@ public:
     ~playerCart()
     {
         playersCounter--;
+        addedPlayers--;
     }
 
     //return player's color
@@ -37,12 +38,17 @@ public:
         return playersCounter;
     }
 
+    static int playersAddedCount()
+    {
+        return addedPlayers;
+    }
+
 protected:
     void paintEvent(QPaintEvent*);
 
 private:
     //current number of slots
-    static int playersCounter;
+    static int playersCounter, addedPlayers;
 
     //player's data
     QString name, color;

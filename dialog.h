@@ -8,6 +8,7 @@
 #include "menubutton.h"
 #include "playercart.h"
 #include "game.h"
+#include "structures.h"
 
 class Dialog : public QDialog
 {
@@ -63,6 +64,9 @@ private:
 
     //clear lobby's window layout
     void erase_lobby();
+
+    //export player data to game
+    void export_playersData(playerData *playersData);
 
 private slots:
     //main menu buttons slots

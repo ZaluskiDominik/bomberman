@@ -3,7 +3,7 @@
 
 //slots for players
 playerCart* players[4];
-int playerCart::playersCounter=0;
+int playerCart::playersCounter=0, playerCart::addedPlayers=0;
 
 playerCart::playerCart(QWidget *parent)
     :QWidget(parent)
@@ -189,6 +189,8 @@ void playerCart::onAddPlayer()
 
     //mark this cart as taken by player
     playerAdded=true;
+    addedPlayers++;
+
     //if all players carts are less than 4 create new emptySlot cart
     if (playersCounter<4)
     {

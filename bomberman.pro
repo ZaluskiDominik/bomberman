@@ -28,13 +28,16 @@ SOURCES += \
         dialog.cpp \
     menubutton.cpp \
     playercart.cpp \
-    game.cpp
+    game.cpp \
+    player.cpp
 
 HEADERS += \
         dialog.h \
     menubutton.h \
     playercart.h \
-    game.h
+    game.h \
+    structures.h \
+    player.h
 
 FORMS +=
 

@@ -7,9 +7,10 @@
         <file>img/blue.png</file>
         <file>img/red.png</file>
         <file>img/close.png</file>
-        <file>img/brick.jpg</file>
-        <file>img/obstacle.jpg</file>
-        <file>img/road.jpg</file>
+        <file>img/fields/brick.jpg</file>
+        <file>img/fields/chest.png</file>
+        <file>img/fields/road.jpg</file>
+        <file>img/fields/obstacle.png</file>
     </qresource>
     <qresource prefix="/sounds">
         <file>sounds/button_click.mp3</file>
