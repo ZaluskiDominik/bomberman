@@ -1,6 +1,10 @@
 #include "player.h"
+#include <QDebug>
 
+extern QList<QGraphicsPixmapItem*> obstacles;
+extern QList<QGraphicsPixmapItem*> chests;
 extern int fieldSize;
+
 int player::playerSize;
 
 player::player(const playerData& data, QGraphicsScene *scene)
@@ -13,7 +17,7 @@ player::player(const playerData& data, QGraphicsScene *scene)
 
     movingTime=20;
 
-    //ad player to scene
+    //add player to scene
     setup_player(scene);
 
     QObject::connect(&moveTimer, SIGNAL(timeout()), this, SLOT(onMoveTimeout()));
@@ -27,6 +31,7 @@ void player::move_player(int key)
         //start timer if this was first key
         if (currDir.size()==1)
             moveTimer.start(movingTime);
+
     }
     else if (key==keys.bomb)
     {
@@ -36,11 +41,6 @@ void player::move_player(int key)
 
 void player::reset_direction(int key)
 {
-    /*if (key==currDir)
-    {
-        currDir=-1;
-        moveTimer.stop();
-    }*/
     if (currDir.removeOne(key))
         if (currDir.empty())
             moveTimer.stop();
@@ -67,33 +67,71 @@ void player::setup_player(QGraphicsScene* scene)
         setPos(scene->width() - playerSize - margin, scene->height() - playerSize - margin);    //bottom right
 }
 
+void player::change_player_pos(int dir, int dist)
+{
+    if (dir==keys.up)
+        setY(y() - dist);
+    else if (dir==keys.down)
+        setY(y() + dist);
+    else if (dir==keys.left)
+        setX(x() - dist);
+    else if (dir==keys.right)
+        setX(x() + dist);
+}
+
 void player::onMoveTimeout()
 {
-    /*if (currDir==keys.up)
-        setY(y() - 10);
-    else if (currDir==keys.down)
-        setY(y() + 10);
-    else if (currDir==keys.left)
-        setX(x() - 10);
-    else if (currDir==keys.right)
-        setX(x() + 10);*/
-    int passX=0, passY=0;
-    for (auto i=currDir.begin() ; i!=currDir.end() ; i++)
-    {
-        if (*i==keys.up || *i==keys.down)
-            passY++;
-        if (*i==keys.left || *i==keys.right)
-            passX++;
-    }
-    if (passY==2 || passX==2)
-        return;                 //stop moving
+    int distance, dirIter=currDir.size()-1;
+    QPoint originPoint(x(), y());
+    QList<QGraphicsItem*> collide;
 
-    if (currDir.first()==keys.up)
-        setY(y() - 3);
-    else if (currDir.first()==keys.down)
-        setY(y() + 3);
-    else if (currDir.first()==keys.left)
-        setX(x() - 3);
-    else if (currDir.first()==keys.right)
-        setX(x() + 3);
+    do
+    {
+        distance=movingDist;
+        do
+        {
+            //reset player's position to origin
+            setPos(originPoint);
+
+            //move player
+            change_player_pos(currDir.at(dirIter), distance);
+
+            //remove player from colliding items list
+            collide=collidingItems();
+            remove_colliding_players(collide);
+
+            //bomb collision
+            bomb_collision(collide);
+
+            distance--;
+            //check for collisions with blocks
+        }
+        while (blocks_collision(collide));
+
+        //change direction to next direction in currDir list
+        dirIter--;
+    }
+    while (dirIter>=0 && distance==-1);
+}
+
+void player::remove_colliding_players(QList<QGraphicsItem *> &collide)
+{
+    for (auto i=collide.begin() ; i!=collide.end() ; i++)
+        if (typeid(**i)==typeid(player))
+            collide.removeOne(*i);
+}
+
+void player::bomb_collision(QList<QGraphicsItem *> &collide)
+{
+
+}
+
+bool player::blocks_collision(QList<QGraphicsItem *>& collide)
+{
+    //if player entered brick frame or collide list isn't empty --> there was collision with a block
+    if ( (y()<fieldSize) || (y()>scene()->width() - fieldSize -playerSize) || (x()<fieldSize) || (x()>scene()->height() - fieldSize - playerSize) || (collide.size()) )
+        return true;
+
+    //there wasn't any collision
+    return false;
 }

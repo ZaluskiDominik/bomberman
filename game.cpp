@@ -17,15 +17,6 @@ QList<QGraphicsPixmapItem*> chests;
 //players in game
 std::vector<player*> gamePlayers;
 
-bool collide(QGraphicsItem* a, QGraphicsItem* b, QPoint offset=QPoint(0, 0))
-{
-    int size=a->boundingRect().width();
-    if (b->contains(QPoint(a->x() + offset.x(), a->y() + offset.y())) || b->contains(QPoint(a->x() + offset.x() + size, a->y() + offset.y()))
-            || b->contains(QPoint(a->x() + offset.x(), a->y() + offset.y() + size)) || b->contains(QPoint(a->x() + offset.x() + size, a->y() + offset.y() + size)))
-            return true;
-    return false;
-}
-
 game::game(QWidget* parent, QSize resolution, const playerData *playersData, int numPlayers)
     :QDialog(parent, Qt::WindowCloseButtonHint | Qt::WindowTitleHint)
 {

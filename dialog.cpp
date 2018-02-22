@@ -219,7 +219,7 @@ void Dialog::export_playersData(playerData* playersData)
 void Dialog::onStartGameClicked()
 {
     //if number of players is less than 2 return
-    if (playerCart::playersAddedCount()<2)
+    if (playerCart::playersAddedCount()<1)
         return;
 
     //hide main menu's window
