@@ -41,11 +41,27 @@ private:
     //timer for measuring time between moves
     QTimer moveTimer;
 
+    //player images representing stage of moving
+    const int numPixmaps;
+    QPixmap playerBack[8];
+    QPixmap playerFront[8];
+    QPixmap playerSide[8];
+
+    //which pixmap should be applied as current player's image
+    int moveStage;
+
     //*******************************************************
 
     //draw players
     void setup_player(QGraphicsScene *scene);
 
+    //load player pixmaps
+    void setup_pixmaps();
+
+    //change player's pixmap based on direction
+    void set_player_pixmap(int dir);
+
+    //move player in given direction and distance
     void change_player_pos(int dir, int dist);
 
     //COLLISIONS

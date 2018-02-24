@@ -11,6 +11,30 @@
         <file>img/fields/chest.png</file>
         <file>img/fields/road.jpg</file>
         <file>img/fields/obstacle.png</file>
+        <file>img/players/white/Front/Bman_F_f00.png</file>
+        <file>img/players/white/Front/Bman_F_f01.png</file>
+        <file>img/players/white/Front/Bman_F_f02.png</file>
+        <file>img/players/white/Front/Bman_F_f03.png</file>
+        <file>img/players/white/Front/Bman_F_f04.png</file>
+        <file>img/players/white/Front/Bman_F_f05.png</file>
+        <file>img/players/white/Front/Bman_F_f06.png</file>
+        <file>img/players/white/Front/Bman_F_f07.png</file>
+        <file>img/players/white/Back/Bman_B_f00.png</file>
+        <file>img/players/white/Back/Bman_B_f01.png</file>
+        <file>img/players/white/Back/Bman_B_f02.png</file>
+        <file>img/players/white/Back/Bman_B_f03.png</file>
+        <file>img/players/white/Back/Bman_B_f04.png</file>
+        <file>img/players/white/Back/Bman_B_f05.png</file>
+        <file>img/players/white/Back/Bman_B_f06.png</file>
+        <file>img/players/white/Back/Bman_B_f07.png</file>
+        <file>img/players/white/Side/Bman_F_f00.png</file>
+        <file>img/players/white/Side/Bman_F_f01.png</file>
+        <file>img/players/white/Side/Bman_F_f02.png</file>
+        <file>img/players/white/Side/Bman_F_f03.png</file>
+        <file>img/players/white/Side/Bman_F_f04.png</file>
+        <file>img/players/white/Side/Bman_F_f05.png</file>
+        <file>img/players/white/Side/Bman_F_f06.png</file>
+        <file>img/players/white/Side/Bman_F_f07.png</file>
     </qresource>
     <qresource prefix="/sounds">
         <file>sounds/button_click.mp3</file>

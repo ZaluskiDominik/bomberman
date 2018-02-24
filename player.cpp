@@ -8,7 +8,7 @@ extern int fieldSize;
 int player::playerSize;
 
 player::player(const playerData& data, QGraphicsScene *scene)
-    :QGraphicsPixmapItem()
+    :numPixmaps(8)
 {
     //import data about player
     keys=data.keys;
@@ -16,6 +16,10 @@ player::player(const playerData& data, QGraphicsScene *scene)
     color=data.color;
 
     movingTime=20;
+    moveStage=0;
+
+    //load player pixmaps
+    setup_pixmaps();
 
     //add player to scene
     setup_player(scene);
@@ -48,12 +52,7 @@ void player::reset_direction(int key)
 
 void player::setup_player(QGraphicsScene* scene)
 {
-    //resize pixmap
-    QPixmap p(":/images/img/" + color + ".png");
-    p=p.scaled(playerSize, playerSize);
-
-    //set player's image
-    setPixmap(p);
+    set_player_pixmap(keys.down);
 
     //set player's position on the map
     int margin=(fieldSize - playerSize)/2 + fieldSize;
@@ -65,6 +64,46 @@ void player::setup_player(QGraphicsScene* scene)
         setPos(margin, scene->height() - playerSize - margin);    //bottom left
     else if (color=="yellow")
         setPos(scene->width() - playerSize - margin, scene->height() - playerSize - margin);    //bottom right
+}
+
+void player::setup_pixmaps()
+{
+    //front of the player
+    for (int i=0 ; i<numPixmaps ; i++)
+    {
+        playerFront[i].load(":/images/img/players/white/Front/Bman_F_f0" + QString::number(i) + ".png");
+        playerFront[i]=playerFront[i].scaled(playerSize, playerSize);
+    }
+
+    //back of the player
+    for (int i=0 ; i<numPixmaps ; i++)
+    {
+        playerBack[i].load(":/images/img/players/white/Back/Bman_B_f0" + QString::number(i) + ".png");
+        playerBack[i]=playerBack[i].scaled(playerSize, playerSize);
+    }
+
+    //side of the player(player look in right direction)
+    for (int i=0 ; i<numPixmaps ; i++)
+    {
+        playerSide[i].load(":/images/img/players/white/Side/Bman_F_f0" + QString::number(i) + ".png");
+        playerSide[i]=playerSide[i].scaled(playerSize, playerSize);
+    }
+}
+
+void player::set_player_pixmap(int dir)
+{
+    setTransform(QTransform());
+    if (dir==keys.up)
+        setPixmap(playerBack[moveStage]);
+    else if (dir==keys.down)
+        setPixmap(playerFront[moveStage]);
+    else
+    {
+        setPixmap(playerSide[moveStage]);
+        if (dir==keys.left)
+            //rotate pixmap, player will be looking in left direction
+            setTransform(QTransform().scale(-1, 1).translate(-playerSize, 0));
+    }
 }
 
 void player::change_player_pos(int dir, int dist)
@@ -97,7 +136,7 @@ void player::onMoveTimeout()
             change_player_pos(currDir.at(dirIter), distance);
 
             //remove player from colliding items list
-            collide=collidingItems();
+            collide=collidingItems(Qt::IntersectsItemBoundingRect);
             remove_colliding_players(collide);
 
             //bomb collision
@@ -112,6 +151,19 @@ void player::onMoveTimeout()
         dirIter--;
     }
     while (dirIter>=0 && distance==-1);
+
+    dirIter++;
+    if (distance!=-1)
+    {
+        //no collision
+        moveStage=(moveStage + 1) % numPixmaps;
+        set_player_pixmap(currDir[dirIter]);
+    }
+    else
+    {
+        //collision
+        moveStage=0;
+    }
 }
 
 void player::remove_colliding_players(QList<QGraphicsItem *> &collide)
