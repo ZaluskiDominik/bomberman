@@ -1,5 +1,4 @@
 #include "player.h"
-#include <QDebug>
 
 extern QList<QGraphicsPixmapItem*> obstacles;
 extern QList<QGraphicsPixmapItem*> chests;
@@ -10,7 +9,7 @@ int player::playerSize;
 player::player(const playerData& data, QGraphicsScene *scene)
     :numPixmaps(8)
 {
-    //import data about player
+    //import data about player, keys setting
     keys=data.keys;
     name=data.name;
     color=data.color;
@@ -32,38 +31,54 @@ void player::move_player(int key)
     if (key==keys.up || key==keys.down || key==keys.left || key==keys.right)
     {
         currDir.append(key);
-        //start timer if this was first key
+        //start timer if this was a first key
         if (currDir.size()==1)
             moveTimer.start(movingTime);
 
     }
     else if (key==keys.bomb)
     {
-
+        //bomb will be placed
     }
 }
 
 void player::reset_direction(int key)
 {
+    //if currDir is empty after removing released key direction
     if (currDir.removeOne(key))
         if (currDir.empty())
+        {
+            //stop moving, reset moving stage
             moveTimer.stop();
+            moveStage=0;
+            set_player_pixmap(key);
+        }
 }
 
 void player::setup_player(QGraphicsScene* scene)
 {
-    set_player_pixmap(keys.down);
-
     //set player's position on the map
     int margin=(fieldSize - playerSize)/2 + fieldSize;
     if (color=="red")
+    {
         setPos(margin, margin);         //top left
+        set_player_pixmap(keys.down);
+    }
     else if (color=="blue")
+    {
         setPos(scene->width() - playerSize - margin, margin);     //top right
+        set_player_pixmap(keys.down);
+    }
     else if (color=="green")
+    {
         setPos(margin, scene->height() - playerSize - margin);    //bottom left
+        set_player_pixmap(keys.up);
+    }
     else if (color=="yellow")
+    {
         setPos(scene->width() - playerSize - margin, scene->height() - playerSize - margin);    //bottom right
+        set_player_pixmap(keys.up);
+    }
 }
 
 void player::setup_pixmaps()
@@ -94,12 +109,12 @@ void player::set_player_pixmap(int dir)
 {
     setTransform(QTransform());
     if (dir==keys.up)
-        setPixmap(playerBack[moveStage]);
+        setPixmap(playerBack[moveStage]);       //player's back
     else if (dir==keys.down)
-        setPixmap(playerFront[moveStage]);
+        setPixmap(playerFront[moveStage]);      //player's front
     else
     {
-        setPixmap(playerSide[moveStage]);
+        setPixmap(playerSide[moveStage]);       //player's side
         if (dir==keys.left)
             //rotate pixmap, player will be looking in left direction
             setTransform(QTransform().scale(-1, 1).translate(-playerSize, 0));
@@ -135,7 +150,7 @@ void player::onMoveTimeout()
             //move player
             change_player_pos(currDir.at(dirIter), distance);
 
-            //remove player from colliding items list
+            //remove players from colliding items list
             collide=collidingItems(Qt::IntersectsItemBoundingRect);
             remove_colliding_players(collide);
 
@@ -156,14 +171,13 @@ void player::onMoveTimeout()
     if (distance!=-1)
     {
         //no collision
+        //advance in move animation
         moveStage=(moveStage + 1) % numPixmaps;
         set_player_pixmap(currDir[dirIter]);
     }
     else
-    {
         //collision
         moveStage=0;
-    }
 }
 
 void player::remove_colliding_players(QList<QGraphicsItem *> &collide)

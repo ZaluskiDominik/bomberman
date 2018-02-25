@@ -7,6 +7,7 @@
 #include <QTimer>
 #include <QList>
 #include "structures.h"
+#include "bomb.h"
 
 //class representing a player in the game
 

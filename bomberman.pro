@@ -29,7 +29,8 @@ SOURCES += \
     menubutton.cpp \
     playercart.cpp \
     game.cpp \
-    player.cpp
+    player.cpp \
+    bomb.cpp
 
 HEADERS += \
         dialog.h \
@@ -37,7 +38,8 @@ HEADERS += \
     playercart.h \
     game.h \
     structures.h \
-    player.h
+    player.h \
+    bomb.h
 
 FORMS +=
 
