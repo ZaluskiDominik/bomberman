@@ -13,6 +13,7 @@
 
 class player : public QObject, public QGraphicsPixmapItem
 {
+    friend class bomb;
     Q_OBJECT
 public:
     player(const playerData& data, QGraphicsScene* scene);
@@ -29,6 +30,15 @@ private:
     //player's keys selected in settings menu
     keys_t keys;
     QString color, name;
+    int lifes;
+    int maxNumBombs;
+
+    //player's number of bombs currently placed at the scene
+    int bombsPlaced;
+
+    //after collecting an item player can push bomb
+    //time in which bomb move its one unit of distance
+    int bombPushInterv;
 
     //list with keys indicating player's moving directory
     QList<int> currDir;
@@ -72,6 +82,9 @@ private:
 
     //check for player collision with bombs
     void bomb_collision(QList<QGraphicsItem*>& collide);
+
+    //check if player left bomb's shape, if yes then remove him from playersInsideShape list
+    void left_bomb_shape();
 
     //check for collision with obstacles, wooden chests or bricks
     bool blocks_collision(QList<QGraphicsItem*>& collide);

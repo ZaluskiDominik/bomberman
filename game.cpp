@@ -176,6 +176,7 @@ void game::draw_bricks()
 
 void game::spawn_players(const playerData* data)
 {
+    player::playerSize=0.9*fieldSize;
     //add players to scene
     for (unsigned int i=0 ; i<gamePlayers.size() ; i++)
     {
