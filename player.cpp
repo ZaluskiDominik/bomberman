@@ -91,21 +91,21 @@ void player::setup_pixmaps()
     for (int i=0 ; i<numPixmaps ; i++)
     {
         playerFront[i].load(":/images/img/players/white/Front/Bman_F_f0" + QString::number(i) + ".png");
-        playerFront[i]=playerFront[i].scaled(playerSize, playerSize);
+        playerFront[i]=playerFront[i].copy(0, 30, playerFront[i].width(), playerFront[i].height()).scaled(playerSize, playerSize);
     }
 
     //back of the player
     for (int i=0 ; i<numPixmaps ; i++)
     {
         playerBack[i].load(":/images/img/players/white/Back/Bman_B_f0" + QString::number(i) + ".png");
-        playerBack[i]=playerBack[i].scaled(playerSize, playerSize);
+        playerBack[i]=playerBack[i].copy(0, 30, playerBack[i].width(), playerBack[i].height()).scaled(playerSize, playerSize);
     }
 
     //side of the player(player look in right direction)
     for (int i=0 ; i<numPixmaps ; i++)
     {
         playerSide[i].load(":/images/img/players/white/Side/Bman_F_f0" + QString::number(i) + ".png");
-        playerSide[i]=playerSide[i].scaled(playerSize, playerSize);
+        playerSide[i]=playerSide[i].copy(0, 30, playerSide[i].width(), playerSide[i].height()).scaled(playerSize, playerSize);
     }
 }
 
