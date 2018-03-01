@@ -210,6 +210,16 @@ void Dialog::export_playersData(playerData* playersData)
     {
         playersData[i].color=players[i]->playerColor();
         playersData[i].name=players[i]->playerName();
+
+        //temporary
+        if (playersData[i].color!="red")
+        {
+            playersData[i].keys.up=Qt::Key_W;
+            playersData[i].keys.down=Qt::Key_S;
+            playersData[i].keys.left=Qt::Key_A;
+            playersData[i].keys.right=Qt::Key_D;
+            playersData[i].keys.bomb=Qt::Key_Tab;
+        }
     }
 }
 
@@ -218,7 +228,7 @@ void Dialog::export_playersData(playerData* playersData)
 //begin game
 void Dialog::onStartGameClicked()
 {
-    //if number of players is less than 2 return
+    //if number of players is less than 1 return
     if (playerCart::playersAddedCount()<1)
         return;
 

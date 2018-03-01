@@ -5,7 +5,53 @@ extern QList<QGraphicsPixmapItem*> chests;
 extern QList<bomb*> bombs;
 extern int fieldSize;
 
-int player::playerSize;
+// CHANGING PLAYER'S HELMET
+
+QPixmap player::color_player(QString color)
+{
+    QImage img;
+    if (color=="red")
+        color_player_helper(img, 32, 40, Qt::red);
+    if (color=="blue")
+        color_player_helper(img, 32, 40, Qt::blue);
+    if (color=="green")
+        color_player_helper(img, 32, 40, Qt::green);
+    else
+        color_player_helper(img, 32, 40, Qt::yellow);
+    return QPixmap::fromImage(img);
+}
+
+void player::color_player_helper(QImage &img, int x, int y, QColor color)
+{
+    if (((x-32)*(x-32)) + ((y-60)*(y-60)) > 23*23 || bad_color(img.pixelColor(x, y)))
+        return;
+
+    img.setPixelColor(x, y, color);
+
+    color_player_helper(img, x, y+1, color);
+    color_player_helper(img, x, y-1, color);
+    color_player_helper(img, x+1, y, color);
+    color_player_helper(img, x-1, y, color);
+}
+
+bool player::bad_color(const QColor& color)
+{
+    //yellow face
+    if (color.red()==255 && color.green()==218 && color.blue()==48)
+        return true;
+    //brown something on helmet
+    if (color.red()==203 && color.green()==99 && color.blue()==43)
+        return true;
+    //player's back
+    if (color.red()==228 && color.green()==224 && color.blue()==195)
+        return true;
+    //aimed color --> this pixel already has been visited
+    if (color.red()==255 && color.green()==0 && color.blue()==0)
+        return true;
+    return false;
+}
+
+//********************************************************************
 
 player::player(const playerData& data, QGraphicsScene *scene)
     :numPixmaps(8)
@@ -17,7 +63,9 @@ player::player(const playerData& data, QGraphicsScene *scene)
     lifes=2;
     maxNumBombs=1;
     bombsPlaced=0;
-    bombPushInterv=20;
+
+    //in the beginning of the game player can't push bombs
+    bombPushInterv=-1;
 
     movingTime=20;
     moveStage=0;
@@ -51,36 +99,31 @@ void player::reset_direction(int key)
     //if currDir is empty after removing released key direction
     if (currDir.removeOne(key))
         if (currDir.empty())
-        {
             //stop moving, reset moving stage
             moveTimer.stop();
-            moveStage=0;
-            set_player_pixmap(key);
-        }
 }
 
 void player::setup_player(QGraphicsScene* scene)
 {
     //set player's position on the map
-    int margin=(fieldSize - playerSize)/2 + fieldSize;
     if (color=="red")
     {
-        setPos(margin, margin);         //top left
+        setPos(fieldSize, fieldSize);         //top left
         set_player_pixmap(keys.down);
     }
     else if (color=="blue")
     {
-        setPos(scene->width() - playerSize - margin, margin);     //top right
+        setPos(scene->width() - (2*fieldSize), fieldSize);     //top right
         set_player_pixmap(keys.down);
     }
     else if (color=="green")
     {
-        setPos(margin, scene->height() - playerSize - margin);    //bottom left
+        setPos(fieldSize, scene->height() - (2*fieldSize));    //bottom left
         set_player_pixmap(keys.up);
     }
     else if (color=="yellow")
     {
-        setPos(scene->width() - playerSize - margin, scene->height() - playerSize - margin);    //bottom right
+        setPos(scene->width() - (2*fieldSize), scene->height() - (2*fieldSize));    //bottom right
         set_player_pixmap(keys.up);
     }
 }
@@ -91,21 +134,21 @@ void player::setup_pixmaps()
     for (int i=0 ; i<numPixmaps ; i++)
     {
         playerFront[i].load(":/images/img/players/white/Front/Bman_F_f0" + QString::number(i) + ".png");
-        playerFront[i]=playerFront[i].copy(0, 30, playerFront[i].width(), playerFront[i].height()).scaled(playerSize, playerSize);
+        playerFront[i]=playerFront[i].copy(0, 30, playerFront[i].width(), playerFront[i].height()).scaled(fieldSize, fieldSize);
     }
 
     //back of the player
     for (int i=0 ; i<numPixmaps ; i++)
     {
         playerBack[i].load(":/images/img/players/white/Back/Bman_B_f0" + QString::number(i) + ".png");
-        playerBack[i]=playerBack[i].copy(0, 30, playerBack[i].width(), playerBack[i].height()).scaled(playerSize, playerSize);
+        playerBack[i]=playerBack[i].copy(0, 30, playerBack[i].width(), playerBack[i].height()).scaled(fieldSize, fieldSize);
     }
 
     //side of the player(player look in right direction)
     for (int i=0 ; i<numPixmaps ; i++)
     {
         playerSide[i].load(":/images/img/players/white/Side/Bman_F_f0" + QString::number(i) + ".png");
-        playerSide[i]=playerSide[i].copy(0, 30, playerSide[i].width(), playerSide[i].height()).scaled(playerSize, playerSize);
+        playerSide[i]=playerSide[i].copy(0, 30, playerSide[i].width(), playerSide[i].height()).scaled(fieldSize, fieldSize);
     }
 }
 
@@ -121,7 +164,7 @@ void player::set_player_pixmap(int dir)
         setPixmap(playerSide[moveStage]);       //player's side
         if (dir==keys.left)
             //rotate pixmap, player will be looking in left direction
-            setTransform(QTransform().scale(-1, 1).translate(-playerSize, 0));
+            setTransform(QTransform().scale(-1, 1).translate(-fieldSize, 0));
     }
 }
 
@@ -177,14 +220,15 @@ void player::onMoveTimeout()
         //no collision
         //advance in move animation
         moveStage=(moveStage + 1) % numPixmaps;
-        set_player_pixmap(currDir[dirIter]);
 
-        //check if plaer didn't leave bomb's shape
+        //check if player didn't leave bomb's shape
         left_bomb_shape();
     }
     else
         //collision
         moveStage=0;
+
+    set_player_pixmap(currDir[dirIter]);
 }
 
 void player::remove_colliding_players(QList<QGraphicsItem *> &collide)
@@ -238,7 +282,7 @@ void player::left_bomb_shape()
 bool player::blocks_collision(QList<QGraphicsItem *>& collide)
 {
     //if player entered brick frame or collide list isn't empty --> there was collision with a block
-    if ( (y()<fieldSize) || (y()>scene()->width() - fieldSize -playerSize) || (x()<fieldSize) || (x()>scene()->height() - fieldSize - playerSize) || (collide.size()) )
+    if ( (y()<fieldSize) || (y()>scene()->width() - (2*fieldSize)) || (x()<fieldSize) || (x()>scene()->height() - (2*fieldSize)) || (collide.size()) )
         return true;
 
     //there wasn't any collision

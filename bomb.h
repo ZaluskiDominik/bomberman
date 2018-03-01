@@ -13,8 +13,6 @@ public:
     bomb(QPoint pos, QGraphicsScene* scene);
     ~bomb();
 
-    static int bombSize;
-
     //players that were inside the bomb's shape during its placing at the scene
     //needed to decide whether the bomb should be collideable with them
     QList<QGraphicsItem*> playersInsideShape;
@@ -41,10 +39,11 @@ private:
     //compute point where bomb will be placed
     void calculate_bomb_pos(QPoint pos);
 
+    //detonate the bomb
     void explode();
 
 private slots:
-    //detonate the bomb
+    //next bomb's pixmap
     void advance_explode();
 
 };

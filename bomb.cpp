@@ -3,7 +3,6 @@
 #include <QGraphicsScene>
 
 extern int fieldSize;
-int bomb::bombSize;
 
 //lists with bombs placed currently at the scene
 QList<bomb*> bombs;
@@ -49,25 +48,25 @@ void bomb::mark_players_inside()
 
 void bomb::set_bomb_pixmap()
 {
-    setPixmap(QPixmap(":/images/img/bomb/bomb.png").scaled(bombSize, bombSize));
+    setPixmap(QPixmap(":/images/img/bomb/bomb.png").scaled(fieldSize, fieldSize));
 }
 
 void bomb::calculate_bomb_pos(QPoint pos)
 {
-    int temp=pos.y()/fieldSize, margin=(fieldSize - bombSize)/2;
+    int temp=pos.y()/fieldSize;
 
     //set y position
     if (pos.y() - (fieldSize * temp)<=fieldSize/2)
-        setY(temp * fieldSize + margin);
+        setY(temp * fieldSize);
     else
-        setY((temp + 1) * fieldSize + margin);
+        setY((temp + 1) * fieldSize);
 
     //set x position
     temp=pos.x()/fieldSize;
     if (pos.x() - (fieldSize * temp)<=fieldSize/2)
-        setX(temp * fieldSize + margin);
+        setX(temp * fieldSize);
     else
-        setX((temp + 1) * fieldSize + margin);
+        setX((temp + 1) * fieldSize);
 }
 
 void bomb::explode()

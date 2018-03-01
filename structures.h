@@ -14,6 +14,11 @@ struct keys_t
 
 struct playerData
 {
+    playerData()
+    {
+
+    }
+
     keys_t keys;
     QString color, name;
 };

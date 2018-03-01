@@ -2,7 +2,6 @@
 #include <QFile>
 #include <QMessageBox>
 #include <algorithm>
-#include <QDebug>
 
 //every field is a square
 //field size
@@ -39,11 +38,6 @@ game::game(QWidget* parent, QSize resolution, const playerData *playersData, int
     //draw players
     gamePlayers.resize(numPlayers);
     spawn_players(playersData);
-
-    //set bombs' width and height
-    bomb::bombSize=fieldSize * 0.9;
-    //set players' width and height
-    player::playerSize=fieldSize * 0.9;
 }
 
 void game::setup_graphics()
@@ -176,7 +170,6 @@ void game::draw_bricks()
 
 void game::spawn_players(const playerData* data)
 {
-    player::playerSize=0.9*fieldSize;
     //add players to scene
     for (unsigned int i=0 ; i<gamePlayers.size() ; i++)
     {

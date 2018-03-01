@@ -80,7 +80,7 @@ private slots:
     //start game
     void onStartGameClicked();
 
-    //game has come to end
+    //game has come to the end
     void onGameEnded();
 
 };

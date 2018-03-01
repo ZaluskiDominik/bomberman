@@ -18,7 +18,8 @@ class player : public QObject, public QGraphicsPixmapItem
 public:
     player(const playerData& data, QGraphicsScene* scene);
 
-    static int playerSize;
+    //convert white player's pixmap to other colors
+    static QPixmap color_player(QString color);
 
     //player makes a move if one of his keys has been pressed
     void move_player(int key);
@@ -61,7 +62,13 @@ private:
     //which pixmap should be applied as current player's image
     int moveStage;
 
-    //*******************************************************
+    //***********************************************************
+
+    //recursive function needed to color_player function
+    static void color_player_helper(QImage& img, int x, int y, QColor color);
+
+    //function needed to color_player function
+    static bool bad_color(const QColor& color);
 
     //draw players
     void setup_player(QGraphicsScene *scene);

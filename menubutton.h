@@ -17,7 +17,7 @@ protected:
 
 private:
     const QString str;  //button title
-    bool in;        //mouse focus
+    bool in;        //cursor hover over
 
     //music players
     QMediaPlayer clickPlayer;
