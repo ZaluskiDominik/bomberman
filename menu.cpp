@@ -1,15 +1,15 @@
-#include "dialog.h"
+#include "menu.h"
 #include <QPainter>
 #include <QKeyEvent>
 #include <QCoreApplication>
 
-//player slot carts in lobby
+//player slots in lobby(max 4 players)
 extern playerCart* players[4];
 
-Dialog::Dialog(QWidget *parent) :
-    QDialog(parent, Qt::WindowCloseButtonHint | Qt::WindowTitleHint), numMenu(3)
+menu::menu(QWidget *parent) :
+    QDialog(parent, Qt::WindowCloseButtonHint | Qt::WindowTitleHint | Qt::WindowMaximizeButtonHint), numMenu(3)
 {
-    //set window title and resolution
+    //set the window's title and the window's resolution
     setWindowTitle("Bomberman");
     setMinimumSize(600, 700);
 
@@ -24,24 +24,20 @@ Dialog::Dialog(QWidget *parent) :
     menuMusic.play();
 }
 
-void Dialog::erase_main_menu()
+void menu::erase_main_menu()
 {
-    //delete buttons
+    //delete menu buttons
     for (int i=0 ; i<numMenu ; i++)
         menuButtons[i]->deleteLater();
 
-    //delete menu's frame and volume button
-    menuFrame->deleteLater();
+    //delete menu's volume button
     volumeButton->deleteLater();
 }
 
-void Dialog::create_main_manu()
+void menu::create_main_manu()
 {
+    //change current location on mainmenu
     currentLocation="mainmenu";
-    //create menu's frame
-    menuFrame=new QFrame(this);
-    menuFrame->setFrameStyle(QFrame::StyledPanel | QFrame::Plain);
-    menuFrame->setLineWidth(3);
 
     //create menu buttons
     QString text[numMenu]={ "Play", "Settings", "Exit" };
@@ -58,48 +54,46 @@ void Dialog::create_main_manu()
     connect (menuButtons[1], SIGNAL(clicked(bool)), this, SLOT(onSettingsClicked()));
     connect (menuButtons[2], SIGNAL(clicked(bool)), this, SLOT(onExitClicked()));
 
+    //update screen
     update();
 }
 
-void Dialog::setup_volumeButton()
+void menu::setup_volumeButton()
 {
     //create volume button
     volumeButton=new QPushButton(this);
     volumeButton->setGeometry(20, 20, 50, 50);
+
+    //set the button's icon
     volumeButton->setIcon(QIcon(":/images/img/volume.png"));
     volumeButton->setIconSize(QSize(50, 50));
-    //set its look as flat
+    //it will look as flat
     volumeButton->setFlat(true);
 }
 
 //*************************** PAINT EVENT ***************************
 
-void Dialog::paintEvent(QPaintEvent *)
+void menu::paintEvent(QPaintEvent *)
 {
     QPainter p(this);
-    if (currentLocation=="mainmenu")
+    if (currentLocation=="mainmenu")    //draw main menu
         draw_main_menu(p);
-    else if (currentLocation=="lobby")
+    else if (currentLocation=="lobby")  //draw lobby menu
         draw_lobby(p);
 }
 
-void Dialog::draw_menuButtons()
+void menu::draw_menuButtons()
 {
-    //resize frame containing menu buttons
-    int frameW=0.5 * width(), frameH=0.5 * height();
-    menuFrame->setGeometry(width()/2 - (frameW / 2), height()/2 - (frameH / 2), frameW, frameH);
-
-    //resize menu buttons
-    //calculate their size
-    int spaceBetween=0.05 * menuFrame->height(), verticalMargin=0.1 * menuFrame->height();
-    int h=(menuFrame->height() - ((numMenu - 1) * spaceBetween) - (2 * verticalMargin)) / numMenu, w=menuFrame->width() - 30;
+    //calculate a new size for menu buttons
+    int spaceBetween=0.025 * height();  //space between the buttons
+    int h=( height()*0.6 - ((numMenu - 1) * spaceBetween) )/numMenu, w=width()/2;
     for (int i=0 ; i<numMenu ; i++)
-        menuButtons[i]->setGeometry(menuFrame->pos().x() + 15, menuFrame->pos().y() + verticalMargin + (i * (h + spaceBetween)), w, h);
+        menuButtons[i]->setGeometry(w/2, height()*0.2 + (i * (h + spaceBetween)), w, h);
 }
 
-void Dialog::draw_main_menu(QPainter& p)
+void menu::draw_main_menu(QPainter& p)
 {
-    //draw background
+    //draw the background
     QImage background(":/images/img/menuBackground.png");
     background=background.scaled(width(), height());
     p.drawImage(0, 0, background);
@@ -113,26 +107,26 @@ void Dialog::draw_main_menu(QPainter& p)
     draw_menuButtons();
 }
 
-void Dialog::draw_lobby(QPainter& p)
+void menu::draw_lobby(QPainter& p)
 {
     //draw lobby's background
     QImage lobbyBackImg(":/images/img/choosing_players.jpg");
     lobbyBackImg=lobbyBackImg.scaled(width(), height());
     p.drawImage(0, 0, lobbyBackImg);
 
-    //resize startGame button
+    //resize the startGame button
     startButton->setGeometry(width()/2 - 100, height() - 90, 200, 80);
 
     //resize slots for players
-    int i, cartH=(height() - 25 - 90)/2, cartW=(width() - 25)/2;
-    for (i=0 ; i<playerCart::playersCount() ; i++)
+    int cartH=(height() - 25 - 90)/2, cartW=(width() - 25)/2;
+    for (int i=0 ; i<playerCart::playersCount() ; i++)
         players[i]->setGeometry((i%2) * (cartW+5) + 10, (i/2) * (cartH+5) + 10, cartW, cartH);
 }
 
 //******************************************************************
 
 //background music
-void Dialog::onPosChanged()
+void menu::onPosChanged()
 {
     //loop background music
     if (menuMusic.position()>=45000)
@@ -145,18 +139,18 @@ void Dialog::onPosChanged()
 //MAIN MENU BUTTONS SLOTS
 //***********************************************************
 
-//go to lobby
-void Dialog::onPlayClicked()
+void menu::onPlayClicked()
 {
+    //change current location on lobby menu
     currentLocation="lobby";
     //clear screen
     erase_main_menu();
 
-    //create first slot for player
+    //create a first empty slot for player
     players[0]=new playerCart(this);
     players[0]->show();
 
-    //set startGame button
+    //create startGame button
     startButton=new QPushButton(this);
     startButton->setText("Start Game");
     startButton->setStyleSheet("background-color: blue; font-size: 17pt; font-weight: bold; color: red;");
@@ -166,22 +160,20 @@ void Dialog::onPlayClicked()
     update();
 }
 
-void Dialog::onSettingsClicked()
+void menu::onSettingsClicked()
 {
 
 }
 
-//end appp
-void Dialog::onExitClicked()
+void menu::onExitClicked()
 {
     QCoreApplication::exit(0);
 }
-//***********************************************************
 
 //KEYBOARD
 //***********************************************************
 
-void Dialog::keyPressEvent(QKeyEvent *e)
+void menu::keyPressEvent(QKeyEvent *e)
 {
     //ESC key for returning to main menu
     if (e->key()==Qt::Key_Escape)
@@ -194,9 +186,9 @@ void Dialog::keyPressEvent(QKeyEvent *e)
     }
 }
 
-void Dialog::erase_lobby()
+void menu::erase_lobby()
 {
-    //delete players's slot carts
+    //delete all player's slots carts
     for (int i=0 ; i<playerCart::playersCount() ; i++)
         players[i]->deleteLater();
 
@@ -204,7 +196,8 @@ void Dialog::erase_lobby()
     startButton->deleteLater();
 }
 
-void Dialog::export_playersData(playerData* playersData)
+//TO DO after adding setting menu
+void menu::export_playersData(playerData* playersData)
 {
     for (int i=0 ; i<playerCart::playersAddedCount() ; i++)
     {
@@ -226,7 +219,7 @@ void Dialog::export_playersData(playerData* playersData)
 //***********************************************************
 
 //begin game
-void Dialog::onStartGameClicked()
+void menu::onStartGameClicked()
 {
     //if number of players is less than 1 return
     if (playerCart::playersAddedCount()<1)
@@ -235,22 +228,28 @@ void Dialog::onStartGameClicked()
     //hide main menu's window
     hide();
 
-    //stop music
+    //stop playing music
     menuMusic.stop();
 
+    //prepare structure for exporting players' data
     playerData playersData[playerCart::playersAddedCount()];
     export_playersData(playersData);
 
-    //shown game's window
+    //show game's window
     gameWnd=new game(this, QSize(1000, 600), playersData, playerCart::playersAddedCount());
     gameWnd->show();
 
-    //connect slot witch will react on end of game
-    connect(gameWnd, SIGNAL(destroyed(QObject*)), this, SLOT(onGameEnded()));
+    //connect slot witch will react on the end of the game
+    connect(gameWnd, SIGNAL(rejected()), this, SLOT(onGameEnded()));
 }
 
-void Dialog::onGameEnded()
+void menu::onGameEnded()
 {
     //reappear main menu's window
+    erase_lobby();
+    create_main_manu();
     show();
+
+    //take over handling the keyboard events
+    grabKeyboard();
 }

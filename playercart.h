@@ -8,7 +8,6 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QLineEdit>
-#include "player.h"
 
 class playerCart : public QWidget
 {
@@ -19,7 +18,8 @@ public:
     ~playerCart()
     {
         playersCounter--;
-        addedPlayers--;
+        if (playerAdded)
+            addedPlayers--;
     }
 
     //return player's color

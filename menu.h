@@ -8,73 +8,81 @@
 #include "menubutton.h"
 #include "playercart.h"
 #include "game.h"
-#include "structures.h"
+#include "otherFunctions.h"
 
-class Dialog : public QDialog
+//class representing the window with the game's main menu
+
+class menu : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit Dialog(QWidget *parent = nullptr);
+    explicit menu(QWidget *parent = nullptr);
 
 protected:
+    //handle drawing and resizing
     void paintEvent(QPaintEvent*);
+    //handle pressing keyboard's keys
     void keyPressEvent(QKeyEvent *e);
 
 private:
+    //number of menus
     const int numMenu;
     //menu buttons(play, settings, quit)
     menuButton* menuButtons[3];
 
-    //frame for menu buttons
-    QFrame* menuFrame;
-
     //background music player
     QMediaPlayer menuMusic;
 
-    //button to show slider which changes the level of music's volume
+    //button, which clicked, shows slider for changing the level of music's volume
     QPushButton* volumeButton;
 
     //keep track in which menu user is currently in
     QString currentLocation;
 
-    //lobby button for starting the game
+    //button for starting the game in lobby location
     QPushButton* startButton;
 
     //game's window with the graphics scene
     game* gameWnd;
 
-    //********FUNCTIONS********
+    //************************************************************
 
     //create main menu with buttons
     void create_main_manu();
+
     //draw main menu
     void draw_main_menu(QPainter &p);
+
     //draw menu buttons
     void draw_menuButtons();
 
-    //set up music's volume button
+    //create music's volume button
     void setup_volumeButton();
 
-    //clear main menu's window layout
+    //clear main menu's window
     void erase_main_menu();
 
-    //draw lobby with slots for players
+    //draw lobby with slots(carts) for players to choose their names and colors
     void draw_lobby(QPainter &p);
 
     //clear lobby's window layout
     void erase_lobby();
 
-    //export player data to game
+    //export player data obtained in playerCart class to game class
     void export_playersData(playerData *playersData);
 
 private slots:
-    //main menu buttons slots
+    //go to lobby
     void onPlayClicked();
+
+    //got to settings menu
     void onSettingsClicked();
+
+    //exit from the app
     void onExitClicked();
 
-    //music loop
+    //activated while advancing in background music
     void onPosChanged();
 
     //start game

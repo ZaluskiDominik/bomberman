@@ -1,19 +1,10 @@
 #include "playercart.h"
 #include <QPainter>
-
-player::playerColor string_to_playerColor(QString str)
-{
-    if (str=="white")
-        return player::White;
-    if (str=="silver")
-        return player::Silver;
-    if (str=="green")
-        return player::Green;
-    return player::Yellow;
-}
+#include "otherFunctions.h"
 
 //slots for players
 playerCart* players[4];
+
 int playerCart::playersCounter=0, playerCart::addedPlayers=0;
 
 playerCart::playerCart(QWidget *parent)
@@ -109,7 +100,7 @@ void playerCart::set_playerData_labels()
 //changes player's image
 void playerCart::change_player_image(QString color)
 {
-    QPixmap p=player::color_player(string_to_playerColor(color), ":/images/img/players/white/Front/Bman_F_f00.png");
+    QPixmap p=color_player(string_to_playerColor(color), ":/images/img/players/white/Front/Bman_F_f00.png");
     playerImage->setPixmap(p.copy(0, 30, p.width(), p.height()).scaled(playerImage->width(), playerImage->height()));
 }
 

@@ -7,7 +7,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
 #include <QList>
-#include "structures.h"
+#include "otherFunctions.h"
 #include "player.h"
 
 class game : public QDialog

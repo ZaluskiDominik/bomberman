@@ -5,52 +5,6 @@ extern QList<QGraphicsPixmapItem*> chests;
 extern QList<bomb*> bombs;
 extern int fieldSize;
 
-extern player::playerColor string_to_playerColor(QString str);
-
-// CHANGING PLAYER HELMET'S COLOR
-
-QPixmap player::color_player(playerColor color, QString imgPath)
-{
-    QImage img(imgPath);
-    if (color==Silver)
-        color_player_helper(img, 32, 40, QColor(0, 76, 153));
-    else if (color==Green)
-        color_player_helper(img, 32, 40, QColor(51, 255, 51));
-    else if(color==Yellow)
-        color_player_helper(img, 32, 40, Qt::yellow);
-    return QPixmap::fromImage(img);
-}
-
-void player::color_player_helper(QImage &img, int x, int y, QColor color)
-{
-    if (((x-32)*(x-32)) + ((y-59)*(y-59)) > 25*25 || stop_coloring(img.pixelColor(x, y), color))
-        return;
-
-    img.setPixelColor(x, y, color);
-
-    color_player_helper(img, x, y+1, color);
-    color_player_helper(img, x, y-1, color);
-    color_player_helper(img, x+1, y, color);
-    color_player_helper(img, x-1, y, color);
-}
-
-bool player::stop_coloring(const QColor& color, const QColor& aimedColor)
-{
-    //yellow face
-    if (color.red()==255 && color.green()==218 && color.blue()==48)
-        return true;
-    //brown something on helmet
-    if (color.red()==203 && color.green()==99 && color.blue()==43)
-        return true;
-    //player's back
-    if (color.red()==228 && color.green()==224 && color.blue()==195)
-        return true;
-    //aimed color --> this pixel already has been visited
-    if (color.red()==aimedColor.red() && color.green()==aimedColor.green() && color.blue()==aimedColor.blue())
-        return true;
-    return false;
-}
-
 //************************************************************************************
 
 player::player(const playerData& data, QGraphicsScene *scene)
@@ -110,17 +64,17 @@ void player::reset_direction(int key)
 void player::setup_player(QGraphicsScene* scene)
 {
     //set player's position on the map
-    if (color==White)
+    if (color==playerColor::White)
     {
         setPos(fieldSize, fieldSize);         //top left
         set_player_pixmap(keys.down);
     }
-    else if (color==Silver)
+    else if (color==playerColor::Silver)
     {
         setPos(scene->width() - (2*fieldSize), fieldSize);     //top right
         set_player_pixmap(keys.down);
     }
-    else if (color==Green)
+    else if (color==playerColor::Green)
     {
         setPos(fieldSize, scene->height() - (2*fieldSize));    //bottom left
         set_player_pixmap(keys.up);

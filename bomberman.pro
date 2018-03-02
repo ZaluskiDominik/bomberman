@@ -25,21 +25,22 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        dialog.cpp \
     menubutton.cpp \
     playercart.cpp \
     game.cpp \
     player.cpp \
-    bomb.cpp
+    bomb.cpp \
+    menu.cpp \
+    otherFunctions.cpp
 
 HEADERS += \
-        dialog.h \
     menubutton.h \
     playercart.h \
     game.h \
-    structures.h \
     player.h \
-    bomb.h
+    bomb.h \
+    menu.h \
+    otherFunctions.h
 
 FORMS +=
 
