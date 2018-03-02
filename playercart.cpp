@@ -1,6 +1,17 @@
 #include "playercart.h"
 #include <QPainter>
 
+player::playerColor string_to_playerColor(QString str)
+{
+    if (str=="white")
+        return player::White;
+    if (str=="silver")
+        return player::Silver;
+    if (str=="green")
+        return player::Green;
+    return player::Yellow;
+}
+
 //slots for players
 playerCart* players[4];
 int playerCart::playersCounter=0, playerCart::addedPlayers=0;
@@ -96,16 +107,10 @@ void playerCart::set_playerData_labels()
 }
 
 //changes player's image
-void playerCart::change_player_image(const QString playerColor)
+void playerCart::change_player_image(QString color)
 {
-    if (playerColor=="red")
-        playerImage->setPixmap(QPixmap(":/images/img/red.png"));
-    else if (playerColor=="blue")
-        playerImage->setPixmap(QPixmap(":/images/img/blue.png"));
-    else if (playerColor=="green")
-        playerImage->setPixmap(QPixmap(":/images/img/red.png"));
-    else if (playerColor=="yellow")
-        playerImage->setPixmap(QPixmap(":/images/img/blue.png"));
+    QPixmap p=player::color_player(string_to_playerColor(color), ":/images/img/players/white/Front/Bman_F_f00.png");
+    playerImage->setPixmap(p.copy(0, 30, p.width(), p.height()).scaled(playerImage->width(), playerImage->height()));
 }
 
 //initialize combo box
@@ -128,7 +133,7 @@ void playerCart::set_color_box()
 //ad colors to combo box
 void playerCart::add_colors()
 {
-    QString colors[4]={"red", "blue", "green", "yellow"};
+    QString colors[4]={"white", "silver", "green", "yellow"};
     int i, j;
 
     //loop through all colors
@@ -215,7 +220,7 @@ void playerCart::onColorChanged()
     {
         if (j!=i && players[j]->playerAdded)
         {
-            //delete from other players' combo boxex the color which senderPlayer selected
+            //delete from other players' combo boxes the color which senderPlayer selected
             int index=players[j]->colorBox->findText(players[i]->colorBox->currentText());
             players[j]->colorBox->removeItem(index);
 

@@ -5,25 +5,25 @@ extern QList<QGraphicsPixmapItem*> chests;
 extern QList<bomb*> bombs;
 extern int fieldSize;
 
-// CHANGING PLAYER'S HELMET
+extern player::playerColor string_to_playerColor(QString str);
 
-QPixmap player::color_player(QString color)
+// CHANGING PLAYER HELMET'S COLOR
+
+QPixmap player::color_player(playerColor color, QString imgPath)
 {
-    QImage img;
-    if (color=="red")
-        color_player_helper(img, 32, 40, Qt::red);
-    if (color=="blue")
-        color_player_helper(img, 32, 40, Qt::blue);
-    if (color=="green")
-        color_player_helper(img, 32, 40, Qt::green);
-    else
+    QImage img(imgPath);
+    if (color==Silver)
+        color_player_helper(img, 32, 40, QColor(0, 76, 153));
+    else if (color==Green)
+        color_player_helper(img, 32, 40, QColor(51, 255, 51));
+    else if(color==Yellow)
         color_player_helper(img, 32, 40, Qt::yellow);
     return QPixmap::fromImage(img);
 }
 
 void player::color_player_helper(QImage &img, int x, int y, QColor color)
 {
-    if (((x-32)*(x-32)) + ((y-60)*(y-60)) > 23*23 || bad_color(img.pixelColor(x, y)))
+    if (((x-32)*(x-32)) + ((y-59)*(y-59)) > 25*25 || stop_coloring(img.pixelColor(x, y), color))
         return;
 
     img.setPixelColor(x, y, color);
@@ -34,7 +34,7 @@ void player::color_player_helper(QImage &img, int x, int y, QColor color)
     color_player_helper(img, x-1, y, color);
 }
 
-bool player::bad_color(const QColor& color)
+bool player::stop_coloring(const QColor& color, const QColor& aimedColor)
 {
     //yellow face
     if (color.red()==255 && color.green()==218 && color.blue()==48)
@@ -46,12 +46,12 @@ bool player::bad_color(const QColor& color)
     if (color.red()==228 && color.green()==224 && color.blue()==195)
         return true;
     //aimed color --> this pixel already has been visited
-    if (color.red()==255 && color.green()==0 && color.blue()==0)
+    if (color.red()==aimedColor.red() && color.green()==aimedColor.green() && color.blue()==aimedColor.blue())
         return true;
     return false;
 }
 
-//********************************************************************
+//************************************************************************************
 
 player::player(const playerData& data, QGraphicsScene *scene)
     :numPixmaps(8)
@@ -59,7 +59,7 @@ player::player(const playerData& data, QGraphicsScene *scene)
     //import data about player, keys setting
     keys=data.keys;
     name=data.name;
-    color=data.color;
+    color=string_to_playerColor(data.color);
     lifes=2;
     maxNumBombs=1;
     bombsPlaced=0;
@@ -99,29 +99,33 @@ void player::reset_direction(int key)
     //if currDir is empty after removing released key direction
     if (currDir.removeOne(key))
         if (currDir.empty())
+        {
             //stop moving, reset moving stage
             moveTimer.stop();
+            moveStage=0;
+            set_player_pixmap(key);
+        }
 }
 
 void player::setup_player(QGraphicsScene* scene)
 {
     //set player's position on the map
-    if (color=="red")
+    if (color==White)
     {
         setPos(fieldSize, fieldSize);         //top left
         set_player_pixmap(keys.down);
     }
-    else if (color=="blue")
+    else if (color==Silver)
     {
         setPos(scene->width() - (2*fieldSize), fieldSize);     //top right
         set_player_pixmap(keys.down);
     }
-    else if (color=="green")
+    else if (color==Green)
     {
         setPos(fieldSize, scene->height() - (2*fieldSize));    //bottom left
         set_player_pixmap(keys.up);
     }
-    else if (color=="yellow")
+    else //yellow
     {
         setPos(scene->width() - (2*fieldSize), scene->height() - (2*fieldSize));    //bottom right
         set_player_pixmap(keys.up);
@@ -133,21 +137,21 @@ void player::setup_pixmaps()
     //front of the player
     for (int i=0 ; i<numPixmaps ; i++)
     {
-        playerFront[i].load(":/images/img/players/white/Front/Bman_F_f0" + QString::number(i) + ".png");
+        playerFront[i]=color_player(color ,":/images/img/players/white/Front/Bman_F_f0" + QString::number(i) + ".png");
         playerFront[i]=playerFront[i].copy(0, 30, playerFront[i].width(), playerFront[i].height()).scaled(fieldSize, fieldSize);
     }
 
     //back of the player
     for (int i=0 ; i<numPixmaps ; i++)
     {
-        playerBack[i].load(":/images/img/players/white/Back/Bman_B_f0" + QString::number(i) + ".png");
+        playerBack[i]=color_player(color, ":/images/img/players/white/Back/Bman_B_f0" + QString::number(i) + ".png");
         playerBack[i]=playerBack[i].copy(0, 30, playerBack[i].width(), playerBack[i].height()).scaled(fieldSize, fieldSize);
     }
 
     //side of the player(player look in right direction)
     for (int i=0 ; i<numPixmaps ; i++)
     {
-        playerSide[i].load(":/images/img/players/white/Side/Bman_F_f0" + QString::number(i) + ".png");
+        playerSide[i]=color_player(color, ":/images/img/players/white/Side/Bman_F_f0" + QString::number(i) + ".png");
         playerSide[i]=playerSide[i].copy(0, 30, playerSide[i].width(), playerSide[i].height()).scaled(fieldSize, fieldSize);
     }
 }

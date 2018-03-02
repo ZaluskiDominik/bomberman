@@ -8,6 +8,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QLineEdit>
+#include "player.h"
 
 class playerCart : public QWidget
 {
@@ -96,7 +97,7 @@ private:
     //set label containing player's image
     void set_playerImage_label();
     //change player's image based on selected color
-    void change_player_image(const QString playerColor);
+    void change_player_image(QString color);
 
     void set_playerData_labels();
 

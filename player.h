@@ -18,8 +18,11 @@ class player : public QObject, public QGraphicsPixmapItem
 public:
     player(const playerData& data, QGraphicsScene* scene);
 
+    //enum with available player's colors
+    enum playerColor{White=0, Silver, Green, Yellow};
+
     //convert white player's pixmap to other colors
-    static QPixmap color_player(QString color);
+    static QPixmap color_player(playerColor color, QString imgPath);
 
     //player makes a move if one of his keys has been pressed
     void move_player(int key);
@@ -30,7 +33,8 @@ public:
 private:
     //player's keys selected in settings menu
     keys_t keys;
-    QString color, name;
+    QString name;
+    playerColor color;
     int lifes;
     int maxNumBombs;
 
@@ -68,7 +72,7 @@ private:
     static void color_player_helper(QImage& img, int x, int y, QColor color);
 
     //function needed to color_player function
-    static bool bad_color(const QColor& color);
+    static bool stop_coloring(const QColor& color, const QColor &aimedColor);
 
     //draw players
     void setup_player(QGraphicsScene *scene);

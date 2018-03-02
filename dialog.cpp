@@ -212,7 +212,7 @@ void Dialog::export_playersData(playerData* playersData)
         playersData[i].name=players[i]->playerName();
 
         //temporary
-        if (playersData[i].color!="red")
+        if (playersData[i].color!="white")
         {
             playersData[i].keys.up=Qt::Key_W;
             playersData[i].keys.down=Qt::Key_S;
