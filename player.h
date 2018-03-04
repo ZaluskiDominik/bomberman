@@ -37,13 +37,13 @@ private:
     int bombsPlaced;
 
     //after collecting an item player can push bomb
-    //time in which bomb move its one unit of distance
+    //time in which bomb move one unit of distance
     int bombPushInterv;
 
     //list with keys indicating player's moving directory
     QList<int> currDir;
 
-    //period of time when player don't move
+    //time between previous and next stage of moving animation
     int movingTime;
 
     //distance which player moves each time
@@ -75,19 +75,17 @@ private:
     //move player in given direction and distance
     void change_player_pos(int dir, int dist);
 
-    //COLLISIONS
-
     //remove colliding players from collide list
     void remove_colliding_players(QList<QGraphicsItem*>& collide);
 
-    //check for player collision with bombs
-    void bomb_collision(QList<QGraphicsItem*>& collide);
+    //handle pushing bombs, leaving bomb's rect
+    void handle_bombs(QList<QGraphicsItem*>& collide);
 
-    //check if player left bomb's shape, if yes then remove him from playersInsideShape list
+    //check if player left bomb's shape
     void left_bomb_shape();
 
-    //check for collision with obstacles, wooden chests or bricks
-    bool blocks_collision(QList<QGraphicsItem*>& collide);
+    //check for collision with obstacles, wooden chests, bricks or bombs
+    bool collision(QList<QGraphicsItem*>& collide);
 
 private slots:
     void onMoveTimeout();

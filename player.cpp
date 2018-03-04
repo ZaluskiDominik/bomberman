@@ -17,19 +17,19 @@ player::player(const playerData& data, QGraphicsScene *scene)
     name=data.name;
     color=string_to_playerColor(data.color);
     lifes=2;
+
+    //in the beginning player can place only 1 bomb at any time
     maxNumBombs=1;
     bombsPlaced=0;
-
     //in the beginning of the game player can't push bombs
     bombPushInterv=-1;
 
     movingTime=20;
     moveStage=0;
 
-    //load player pixmaps
+    //load player's pixmaps
     setup_pixmaps();
 
-    //add player to scene
     setup_player(scene);
 
     QObject::connect(&moveTimer, SIGNAL(timeout()), this, SLOT(onMoveTimeout()));
@@ -113,7 +113,7 @@ void player::set_player_pixmap(int dir)
     {
         setPixmap(playerSide[moveStage]);       //player's side
         if (dir==keys.left)
-            //rotate pixmap, player will be looking in left direction
+            //mirror pixmap, player will be looking in left direction
             setTransform(QTransform().scale(-1, 1).translate(-fieldSize, 0));
     }
 }
@@ -133,12 +133,14 @@ void player::change_player_pos(int dir, int dist)
 void player::onMoveTimeout()
 {
     int distance, dirIter=currDir.size()-1;
+    //save player position
     QPoint originPoint(x(), y());
     QList<QGraphicsItem*> collide;
 
     do
     {
         distance=movingDist;
+        //while player collide, each time try to move smaller distance
         do
         {
             //reset player's position to origin
@@ -147,18 +149,17 @@ void player::onMoveTimeout()
             //move player
             change_player_pos(currDir.at(dirIter), distance);
 
-            //remove players from colliding items list
+            //get the list of items colliding with the player
             collide=collidingItems(Qt::IntersectsItemBoundingRect);
-
+            //remove players from colliding items list
             remove_colliding_players(collide);
 
             //bomb collision
-            bomb_collision(collide);
+            handle_bombs(collide);
 
             distance--;
-            //check for collisions with blocks
         }
-        while (blocks_collision(collide));
+        while (collision(collide));
 
         //change direction to next direction in currDir list
         dirIter--;
@@ -184,12 +185,12 @@ void player::onMoveTimeout()
 
 void player::remove_colliding_players(QList<QGraphicsItem *> &collide)
 {
-    for (auto i=collide.begin() ; i!=collide.end() ; i++)
-        if (typeid(**i)==typeid(player))
-            collide.removeOne(*i);
+    for (int i=0 ; i<collide.size() ; i++)
+        if (typeid(*collide[i])==typeid(player))
+            collide.removeOne(collide[i--]);
 }
 
-void player::bomb_collision(QList<QGraphicsItem *> &collide)
+void player::handle_bombs(QList<QGraphicsItem *> &collide)
 {
     QList<bomb*>::iterator collidingBomb;
 
@@ -231,7 +232,7 @@ void player::left_bomb_shape()
             (*i)->playersInsideShape.removeOne(this);
 }
 
-bool player::blocks_collision(QList<QGraphicsItem *>& collide)
+bool player::collision(QList<QGraphicsItem *>& collide)
 {
     //if player entered brick frame or collide list isn't empty --> there was collision with a block
     if ( (y()<fieldSize) || (y()>scene()->width() - (2*fieldSize)) || (x()<fieldSize) || (x()>scene()->height() - (2*fieldSize)) || (collide.size()) )
