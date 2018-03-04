@@ -15,14 +15,15 @@ class player : public QObject, public QGraphicsPixmapItem
 {
     friend class bomb;
     Q_OBJECT
+
 public:
     player(const playerData& data, QGraphicsScene* scene);
 
-    //player makes a move if one of his keys has been pressed
-    void move_player(int key);
+    //add new direction if it's one of this player's keys
+    void key_pressed(int key);
 
-    //release moving key
-    void reset_direction(int key);
+    //release key if it's one of this player's keys
+    void key_released(int key);
 
 private:
     //player's keys selected in settings menu
@@ -62,10 +63,10 @@ private:
 
     //**********************************************************************
 
-    //draw players
+    //set player's position and pixmap
     void setup_player(QGraphicsScene *scene);
 
-    //load player pixmaps
+    //load player's pixmaps to memory
     void setup_pixmaps();
 
     //change player's pixmap based on direction

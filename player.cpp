@@ -1,5 +1,4 @@
 #include "player.h"
-#include <QDebug>
 
 extern QList<QGraphicsPixmapItem*> obstacles;
 extern QList<QGraphicsPixmapItem*> chests;
@@ -11,6 +10,8 @@ extern int fieldSize;
 player::player(const playerData& data, QGraphicsScene *scene)
     :numPixmaps(8)
 {
+    scene->addItem(this);
+
     //import data about player, keys setting
     keys=data.keys;
     name=data.name;
@@ -34,7 +35,7 @@ player::player(const playerData& data, QGraphicsScene *scene)
     QObject::connect(&moveTimer, SIGNAL(timeout()), this, SLOT(onMoveTimeout()));
 }
 
-void player::move_player(int key)
+void player::key_pressed(int key)
 {
     if (key==keys.up || key==keys.down || key==keys.left || key==keys.right)
     {
@@ -49,7 +50,7 @@ void player::move_player(int key)
         new bomb(pos().toPoint(), scene());
 }
 
-void player::reset_direction(int key)
+void player::key_released(int key)
 {
     //if currDir is empty after removing released key direction
     if (currDir.removeOne(key))
@@ -64,27 +65,17 @@ void player::reset_direction(int key)
 
 void player::setup_player(QGraphicsScene* scene)
 {
-    //set player's position on the map
     if (color==playerColor::White)
-    {
         setPos(fieldSize, fieldSize);         //top left
-        set_player_pixmap(keys.down);
-    }
     else if (color==playerColor::Silver)
-    {
         setPos(scene->width() - (2*fieldSize), fieldSize);     //top right
-        set_player_pixmap(keys.down);
-    }
     else if (color==playerColor::Green)
-    {
         setPos(fieldSize, scene->height() - (2*fieldSize));    //bottom left
-        set_player_pixmap(keys.up);
-    }
     else //yellow
-    {
         setPos(scene->width() - (2*fieldSize), scene->height() - (2*fieldSize));    //bottom right
-        set_player_pixmap(keys.up);
-    }
+
+    //set player's pixmap
+    set_player_pixmap(keys.down);
 }
 
 void player::setup_pixmaps()
@@ -158,9 +149,9 @@ void player::onMoveTimeout()
 
             //remove players from colliding items list
             collide=collidingItems(Qt::IntersectsItemBoundingRect);
-            qDebug()<<collide.size();
+
             remove_colliding_players(collide);
-            qDebug()<<"after player: "<<collide.size();
+
             //bomb collision
             bomb_collision(collide);
 
@@ -202,16 +193,13 @@ void player::bomb_collision(QList<QGraphicsItem *> &collide)
 {
     QList<bomb*>::iterator collidingBomb;
 
-    int p=0;
-    for (auto i=collide.begin() ; i!=collide.end() ; i++, p++)
+    for (int i=0 ; i<collide.size() ; i++)
     {
         //it's a bomb
-        qDebug()<<p;
-        if (typeid(**i)==typeid(bomb))
+        if (typeid(*collide[i])==typeid(bomb))
         {
-            qDebug()<<"bomb";
             //find that bomb in bombs list
-            for (collidingBomb=bombs.begin() ; (*collidingBomb)!=(*i) ; collidingBomb++);
+            for (collidingBomb=bombs.begin() ; (*collidingBomb)!=collide[i] ; collidingBomb++);
 
             //if playersInsideShape list is not empty
             if ((*collidingBomb)->playersInsideShape.empty()==false)
@@ -223,7 +211,7 @@ void player::bomb_collision(QList<QGraphicsItem *> &collide)
                 {
                     //bomb is not collideable for this player
                     //remove that bomb from collide list
-                    collide.removeOne(*i);
+                    collide.removeOne(collide[i--]);
                 }
             }
             else
@@ -231,7 +219,6 @@ void player::bomb_collision(QList<QGraphicsItem *> &collide)
 
             }
         }
-        qDebug()<<"size: "<<collide.size();
     }
 }
 

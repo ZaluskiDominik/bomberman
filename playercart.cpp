@@ -206,18 +206,19 @@ void playerCart::onAddPlayer()
 void playerCart::onColorChanged()
 {
     int i, j;
-    for (i=0 ; players[i]->colorBox!=qobject_cast<QComboBox*>(sender()) ; i++);
+    QComboBox* senderBox=qobject_cast<QComboBox*>(sender());
+    for (i=0 ; players[i]->colorBox!=senderBox ; i++);
 
     //check if removing player's cart triggered index change
-    if (players[i]->colorBox->currentText()==players[i]->color)
+    if (senderBox->currentText()==players[i]->color)
         return;
 
-    for (j=0 ; j<playersCounter ; j++)
+    for (j=0 ; j<addedPlayers ; j++)
     {
-        if (j!=i && players[j]->playerAdded)
+        if (i!=j)
         {
             //delete from other players' combo boxes the color which senderPlayer selected
-            int index=players[j]->colorBox->findText(players[i]->colorBox->currentText());
+            int index=players[j]->colorBox->findText(senderBox->currentText());
             players[j]->colorBox->removeItem(index);
 
             //add old color of senderPlayer to other players' combo boxes
@@ -226,7 +227,7 @@ void playerCart::onColorChanged()
     }
 
     //set new player's color
-    players[i]->color=players[i]->colorBox->currentText();
+    players[i]->color=senderBox->currentText();
     //change player's image
     players[i]->change_player_image(players[i]->color);
 }
@@ -247,7 +248,7 @@ void playerCart::onCartClosed()
         players[j]=players[j+1];
 
     //if all players' slots were taken
-    if (playersCounter==4 && players[3]->playerAdded)
+    if (addedPlayers==4)
     {
         //add new empty cart
         players[3]=new playerCart(parentWidget());
@@ -255,7 +256,7 @@ void playerCart::onCartClosed()
     }
 
     //add deleted player's color to other players combo boxes
-    for (i=0 ; i<playersCounter-2 ; i++)
+    for (i=0 ; i<addedPlayers-1 ; i++)
         players[i]->colorBox->addItem(cartToDelete->colorBox->currentText());
 
     //delete the player's cart

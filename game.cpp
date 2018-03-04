@@ -1,10 +1,10 @@
 #include "game.h"
-#include <QFile>
+#include <fstream>
 #include <QMessageBox>
 #include <algorithm>
 
 //every field is a square
-//field size
+//length of the side of the square
 int fieldSize;
 
 //list with undestroyable obstacles
@@ -13,8 +13,8 @@ QList<QGraphicsPixmapItem*> obstacles;
 //list witch desroyable wooded chests
 QList<QGraphicsPixmapItem*> chests;
 
-//players in game
-std::vector<player*> gamePlayers;
+//list with players in game
+QList<player*> gamePlayers;
 
 game::game(QWidget* parent, QSize resolution, const playerData *playersData, int numPlayers)
     :QDialog(parent, Qt::WindowCloseButtonHint | Qt::WindowTitleHint)
@@ -26,18 +26,23 @@ game::game(QWidget* parent, QSize resolution, const playerData *playersData, int
     setFixedSize(resolution);
     setWindowTitle("Bomberman");
 
-    //set pixmaps paths
-    setup_pixmaps();
+    load_pixmaps();
 
+    //load the map to memory
     if (!load_map())
+    {
+        //an error occured
+        parentWidget()->show();
+        QMessageBox::warning(parentWidget(), "Error", "Could not open file field.txt", QMessageBox::Ok);
+        deleteLater();
         return;
+    }
 
-    //draw graphicsView's frame as brick
+    //draw graphicsView's frame made of brick
     draw_bricks();
 
     //draw players
-    gamePlayers.resize(numPlayers);
-    spawn_players(playersData);
+    spawn_players(playersData, numPlayers);
 }
 
 void game::setup_graphics()
@@ -60,84 +65,73 @@ void game::setup_graphics()
     scene->setBackgroundBrush(QImage(":/images/img/fields/road.jpg"));
 }
 
-void game::setup_pixmaps()
+void game::load_pixmaps()
 {
-    //fields
-    fieldPixmaps[0].load(":/images/img/fields/obstacle.png");
-    fieldPixmaps[1].load(":/images/img/fields/brick.jpg");
-    fieldPixmaps[2].load(":/images/img/fields/chest.png");
+    fields[0].load(":/images/img/fields/obstacle.png");
+    fields[1].load(":/images/img/fields/brick.jpg");
+    fields[2].load(":/images/img/fields/chest.png");
 }
 
-QPixmap game::getFieldPixmap(fieldType name, int size)
+QPixmap game::get_field_pixmap(fieldType name, int size)
 {
     QPixmap pixmap;
     //choose pixmap based on name
     if (name==Obstacle)
-        pixmap=fieldPixmaps[0];
+        pixmap=fields[0];
     else if (name==Brick)
-        pixmap=fieldPixmaps[1];
+        pixmap=fields[1];
     else if (name==Chest)
-        pixmap=fieldPixmaps[2];
+        pixmap=fields[2];
 
-    //resize
-    pixmap=pixmap.scaled(size, size);
-    return pixmap;
+    //scale pixmap
+    return pixmap.scaled(size, size);
 }
 
 bool game::load_map()
 {
-    QFile file("map.txt");
-    QString line;
+    std::ifstream file("map.txt");
 
-    if (!file.open(QIODevice::ReadOnly))
-    {
+    if (!file.is_open())
         //error file isn't open
-        parentWidget()->show();
-        QMessageBox::warning(parentWidget(), "Error", "Could not open file field.txt", QMessageBox::Ok);
-        deleteLater();
         return false;
-    }
 
-    //read dimensions
-    line=file.readLine();
+    //read width and height(in number of fields)
+    file>>w>>h;
     //two additional rows and columns for brick
-    w=line.left(line.size()-2).toInt() + 2;
-    line=file.readLine();
-    h=line.left(line.size()-2).toInt() + 2;
+    w+=2;
+    h+=2;
 
-    //calculate map size
+    //calculate the map size
     fieldSize=std::min(height()/h, int(width() * 0.8 / w));
 
     //create graphics scene
     setup_graphics();
 
     //read fields and draw them
-    draw_fields(&file);
+    draw_fields(file);
 
     //exit without errors
     return true;
 }
 
-void game::draw_fields(QFile* file)
+void game::draw_fields(std::ifstream& file)
 {
-    QString line;
     //number determinating which field this is
     int field;
     for (int i=1 ; i<h-1 ; i++)
     {
-        line=file->readLine();
         for (int j=1 ; j<w-1 ; j++)
         {
-            field=line[j-1].toLatin1() - '0';
+            file>>field;
             if (field==Obstacle)
             {
-                obstacles.append(new QGraphicsPixmapItem(getFieldPixmap(Obstacle, fieldSize)));
+                obstacles.append(new QGraphicsPixmapItem(get_field_pixmap(Obstacle, fieldSize)));
                 obstacles.back()->setPos(j * fieldSize, i * fieldSize);
                 scene->addItem(obstacles.back());
             }
             else if (field==Chest)
             {
-                chests.append(new QGraphicsPixmapItem(getFieldPixmap(Chest, fieldSize)));
+                chests.append(new QGraphicsPixmapItem(get_field_pixmap(Chest, fieldSize)));
                 chests.back()->setPos(j * fieldSize, i * fieldSize);
                 scene->addItem(chests.back());
             }
@@ -150,7 +144,7 @@ void game::draw_bricks()
     //vertical
     for (int i=0 ; i<h ; i++)
     {
-        QGraphicsPixmapItem* item[2]={new QGraphicsPixmapItem(getFieldPixmap(Brick, fieldSize)), new QGraphicsPixmapItem(getFieldPixmap(Brick, fieldSize))};
+        QGraphicsPixmapItem* item[2]={new QGraphicsPixmapItem(get_field_pixmap(Brick, fieldSize)), new QGraphicsPixmapItem(get_field_pixmap(Brick, fieldSize))};
         item[0]->setPos(0, i * fieldSize);
         scene->addItem(item[0]);
         item[1]->setPos(view->width() - fieldSize, i * fieldSize);
@@ -160,7 +154,7 @@ void game::draw_bricks()
     //horizontal
     for (int i=1 ; i<w-1 ; i++)
     {
-        QGraphicsPixmapItem* item[2]={new QGraphicsPixmapItem(getFieldPixmap(Brick, fieldSize)), new QGraphicsPixmapItem(getFieldPixmap(Brick, fieldSize))};
+        QGraphicsPixmapItem* item[2]={new QGraphicsPixmapItem(get_field_pixmap(Brick, fieldSize)), new QGraphicsPixmapItem(get_field_pixmap(Brick, fieldSize))};
         item[0]->setPos(i * fieldSize, 0);
         scene->addItem(item[0]);
         item[1]->setPos(i * fieldSize, view->height() - fieldSize);
@@ -168,25 +162,22 @@ void game::draw_bricks()
     }
 }
 
-void game::spawn_players(const playerData* data)
+void game::spawn_players(const playerData* data, int numPlayers)
 {
-    //add players to scene
-    for (unsigned int i=0 ; i<gamePlayers.size() ; i++)
-    {
-        gamePlayers[i]=new player(data[i], scene);
-        scene->addItem(gamePlayers[i]);
-    }
+    for (int i=0 ; i<numPlayers ; i++)
+        gamePlayers.append(new player(data[i], scene));
 }
 
 //KEY EVENTS
 void game::keyPressEvent(QKeyEvent *e)
 {
+    //return if event for that key was repeated
     if (e->isAutoRepeat())
         return;
 
     //let each player handle pressing keys
-    for (unsigned int i=0 ; i<gamePlayers.size() ; i++)
-        gamePlayers[i]->move_player(e->key());
+    for (int i=0 ; i<gamePlayers.size() ; i++)
+        gamePlayers[i]->key_pressed(e->key());
 }
 
 void game::keyReleaseEvent(QKeyEvent *e)
@@ -195,6 +186,6 @@ void game::keyReleaseEvent(QKeyEvent *e)
         return;
 
     //let each player handle releasing keys
-    for (unsigned int i=0 ; i<gamePlayers.size() ; i++)
-        gamePlayers[i]->reset_direction(e->key());
+    for (int i=0 ; i<gamePlayers.size() ; i++)
+        gamePlayers[i]->key_released(e->key());
 }
