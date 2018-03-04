@@ -4,6 +4,8 @@
 #include <QAbstractButton>
 #include <QMediaPlayer>
 
+//class representing menu button
+
 class menuButton : public QAbstractButton
 {
     Q_OBJECT
@@ -16,10 +18,13 @@ protected:
     void paintEvent(QPaintEvent *);
 
 private:
-    const QString str;  //button title
-    bool in;        //cursor hover over
+    //button's title
+    const QString str;
 
-    //music players
+    //whether mouse cursor is over the button
+    bool in;
+
+    //music player
     QMediaPlayer clickPlayer;
 
 };

@@ -17,7 +17,10 @@ public:
 
     ~playerCart()
     {
+        //decrement the number of playerCarts
         playersCounter--;
+
+        //if this slot was taken by a player
         if (playerAdded)
             addedPlayers--;
     }
@@ -34,11 +37,13 @@ public:
         return name;
     }
 
+    //the number of playerCarts
     static int playersCount()
     {
         return playersCounter;
     }
 
+    //the number of playerCarts that are not empty(slot was taken by a player)
     static int playersAddedCount()
     {
         return addedPlayers;
@@ -48,22 +53,21 @@ protected:
     void paintEvent(QPaintEvent*);
 
 private:
-    //current number of slots
     static int playersCounter, addedPlayers;
 
     //player's data
     QString name, color;
 
-    //whether or not add player was clicked
+    //whether addButton was clicked(slot is taken by a player)
     bool playerAdded;
 
-    //frame around player's slot cart
+    //frame around the cart
     QFrame* playerFrame;
     QVBoxLayout* frameLayout;
 
-    //add player button
+    //button for taking slot by a player
     QPushButton* addButton;
-    //close cart button --> remove player's slot
+    //button for removing the player's slot
     QPushButton* closeCart;
 
     //label for player's image
@@ -74,21 +78,19 @@ private:
 
     //player can select his color from combo box
     QComboBox* colorBox;
+
     //line edit for typying player's name
     QLineEdit* nameEdit;
 
-    //contains player's image, name, color
+    //layout containing player's image, name, color
     QGridLayout* playerData;
 
-    //FUNCTIONS*******************************************************
-    //creates combo box with colors
-    void set_color_box();
+    //***********************************************************************
 
-    //add colors to combo box that are available to choose
-    void add_colors();
-
+    //create frame around the cart
     void set_frame();
-    //create empty slots's widgets inside the frame
+
+    //create empty slots, player can be added after clicking addButton
     void set_emptySlot();
 
     //creates button for deleting player cart
@@ -96,16 +98,26 @@ private:
 
     //set label containing player's image
     void set_playerImage_label();
+
     //change player's image based on selected color
     void change_player_image(QString color);
 
+    //create name label and color label
     void set_playerData_labels();
 
+    void set_nameEdit();
+
+    //create combo box with colors
+    void set_color_box();
+
+    //add colors to combo box that are available to choose
+    void add_colors();
+
 private slots:
-    //addPlayer button clicked
+    //addPlayer button has been clicked
     void onAddPlayer();
 
-    //player change color in combo box
+    //player changed color in combo box
     void onColorChanged();
 
     //closeCart button has been clicked

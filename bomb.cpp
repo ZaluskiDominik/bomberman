@@ -75,7 +75,6 @@ void bomb::explode()
 
 
     //remove the bomb
-    scene()->removeItem(this);
     this->deleteLater();
 }
 

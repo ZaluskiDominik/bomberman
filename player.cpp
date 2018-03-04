@@ -1,4 +1,5 @@
 #include "player.h"
+#include <QDebug>
 
 extern QList<QGraphicsPixmapItem*> obstacles;
 extern QList<QGraphicsPixmapItem*> chests;
@@ -157,8 +158,9 @@ void player::onMoveTimeout()
 
             //remove players from colliding items list
             collide=collidingItems(Qt::IntersectsItemBoundingRect);
+            qDebug()<<collide.size();
             remove_colliding_players(collide);
-
+            qDebug()<<"after player: "<<collide.size();
             //bomb collision
             bomb_collision(collide);
 
@@ -199,11 +201,15 @@ void player::remove_colliding_players(QList<QGraphicsItem *> &collide)
 void player::bomb_collision(QList<QGraphicsItem *> &collide)
 {
     QList<bomb*>::iterator collidingBomb;
-    for (auto i=collide.begin() ; i!=collide.end() ; i++)
+
+    int p=0;
+    for (auto i=collide.begin() ; i!=collide.end() ; i++, p++)
     {
         //it's a bomb
+        qDebug()<<p;
         if (typeid(**i)==typeid(bomb))
         {
+            qDebug()<<"bomb";
             //find that bomb in bombs list
             for (collidingBomb=bombs.begin() ; (*collidingBomb)!=(*i) ; collidingBomb++);
 
@@ -225,6 +231,7 @@ void player::bomb_collision(QList<QGraphicsItem *> &collide)
 
             }
         }
+        qDebug()<<"size: "<<collide.size();
     }
 }
 

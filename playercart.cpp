@@ -18,7 +18,7 @@ playerCart::playerCart(QWidget *parent)
     //create frame around player's slot cart
     set_frame();
 
-    //create empty slots's widgets inside the frame
+    //create empty slot
     set_emptySlot();
 
     //connect slot which will react on clicking the button for adding player
@@ -27,11 +27,10 @@ playerCart::playerCart(QWidget *parent)
 
 void playerCart::set_frame()
 {
-    //allocate
     playerFrame=new QFrame(this);
     frameLayout=new QVBoxLayout;
 
-    //set frame's look
+    //frame's look
     playerFrame->setLayout(frameLayout);
     playerFrame->setLineWidth(3);
     playerFrame->setMidLineWidth(3);
@@ -41,21 +40,20 @@ void playerCart::set_frame()
 
 void playerCart::set_emptySlot()
 {
-    //emptySlot label, add player button
+    //label with text: "empty slot"
     QLabel* emptySlot=new QLabel;
-
-    //set emptySlot label's font
     QFont f;
     f.setBold(true);
     f.setPointSize(18);
     emptySlot->setFont(f);
     emptySlot->setText("Empty slot");
 
+    //button for adding player
     addButton=new QPushButton("Add player");
     addButton->setIcon(QIcon(":/images/img/add_player.png"));
     addButton->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
 
-    //add button for adding players and emptySlot label to frame layout
+    //add to frame layout
     frameLayout->addWidget(emptySlot, 0, Qt::AlignCenter);
     frameLayout->addWidget(addButton, 0, Qt::AlignCenter);
 }
@@ -97,21 +95,32 @@ void playerCart::set_playerData_labels()
     playerData->addWidget(colorLabel, 1, 0);
 }
 
-//changes player's image
+void playerCart::set_nameEdit()
+{
+    nameEdit=new QLineEdit;
+    //set max name's length
+    nameEdit->setMaxLength(12);
+    playerData->addWidget(nameEdit, 0, 1);
+    //receive signal after user end typying
+    connect (nameEdit, SIGNAL(editingFinished()), this, SLOT(onNameEntered()));
+}
+
 void playerCart::change_player_image(QString color)
 {
+    //color player's helmet
     QPixmap p=color_player(string_to_playerColor(color), ":/images/img/players/white/Front/Bman_F_f00.png");
+
+    //cut and scale pixmap
     playerImage->setPixmap(p.copy(0, 30, p.width(), p.height()).scaled(playerImage->width(), playerImage->height()));
 }
 
-//initialize combo box
 void playerCart::set_color_box()
 {
     colorBox=new QComboBox;
 
     //add to frame layout
     playerData->addWidget(colorBox, 1, 1);
-    //fill with colors
+    //add colors to combo box
     add_colors();
 
     //set player's color as first available from combo box
@@ -121,7 +130,7 @@ void playerCart::set_color_box()
     connect (colorBox, SIGNAL(currentTextChanged(QString)), this, SLOT(onColorChanged()));
 }
 
-//ad colors to combo box
+//add colors to combo box
 void playerCart::add_colors()
 {
     QString colors[4]={"white", "silver", "green", "yellow"};
@@ -131,7 +140,7 @@ void playerCart::add_colors()
     for (i=0 ; i<4 ; i++)
     {
         for (j=0 ; j<playersCounter && players[j]->colorBox->currentText()!=colors[i] ; j++);
-        //if previous players didn't choose that color add it to comco box
+        //if previous players didn't selected that color, add it to combo box
         if (j==playersCounter)
             colorBox->addItem(colors[i]);
     }
@@ -140,8 +149,10 @@ void playerCart::add_colors()
 void playerCart::paintEvent(QPaintEvent*)
 {
     QPainter p(this);
+    //silver background
     p.fillRect(0, 0, width(), height(), QColor(211, 211, 211));
-    //resizing frame
+
+    //resize frame
     playerFrame->resize(width(), height());
 }
 
@@ -150,60 +161,54 @@ void playerCart::paintEvent(QPaintEvent*)
 
 void playerCart::onAddPlayer()
 {
-    //delete emptySlot layout
+    //delete previous layout of the empty cart
     frameLayout->deleteLater();
     playerFrame->deleteLater();
+
+    //create new frame
     set_frame();
 
-    //close button
+    //add closeButton at top right corner
     set_closeButton();
-    //player image
+
     set_playerImage_label();
 
-    //add layout for widgets with player data
     playerData=new QGridLayout;
     frameLayout->addLayout(playerData);
 
-    //combo box with colors
+    //create combo box with colors
     set_color_box();
 
-    //change player image based on selected color
     change_player_image(colorBox->currentText());
 
-    //label for player's data
     set_playerData_labels();
 
-    //line edit for typing player's name
-    nameEdit=new QLineEdit;
-    playerData->addWidget(nameEdit, 0, 1);
-    //receive signal after user end typying
-    connect (nameEdit, SIGNAL(editingFinished()), this, SLOT(onNameEntered()));
+    set_nameEdit();
 
-    //updating combo boxes of others players(other player can't choose the color of this player)
+    //update combo boxes of others players(other player shouldn't be able to choose the color of this player)
     for (int i=0 ; i<playersCounter-1 ; i++)
         players[i]->colorBox->removeItem(players[i]->colorBox->findText(color));
 
-    //mark this cart as taken by player
+    //mark this slot as taken by player
     playerAdded=true;
     addedPlayers++;
 
-    //if all players carts are less than 4 create new emptySlot cart
+    //if the number of player carts is less than 4 create new emptySlot cart
     if (playersCounter<4)
     {
         //right side will be calculated first, so the variable playersCounter will be incremented
-        //it's why left side array's index is playersCounter-1
+        //it's why array's index equals playersCounter-1
         players[playersCounter-1]=new playerCart(parentWidget());
         players[playersCounter-1]->show();
     }
 }
 
-//combo box index changed
 void playerCart::onColorChanged()
 {
     int i, j;
     for (i=0 ; players[i]->colorBox!=qobject_cast<QComboBox*>(sender()) ; i++);
 
-    //check if removing player's cart didnt trigger index change
+    //check if removing player's cart triggered index change
     if (players[i]->colorBox->currentText()==players[i]->color)
         return;
 
@@ -226,7 +231,6 @@ void playerCart::onColorChanged()
     players[i]->change_player_image(players[i]->color);
 }
 
-//close button clicked
 void playerCart::onCartClosed()
 {
     QPushButton *sigSender=qobject_cast<QPushButton*>(sender());
@@ -266,16 +270,17 @@ void playerCart::onNameEntered()
     //find his index in players array
     for (j=0 ; players[j]->nameEdit!=sigSender ; j++);
 
-    //check if other player didn't already chose that name
-    for (i=0 ; i<playersCounter && players[i]->playerAdded; i++)
+    //check if other player didn't already seleted that name
+    for (i=0 ; i<addedPlayers; i++)
     {
-        if (players[i]->name==players[j]->nameEdit->text() && i!=j )
+        if ( (players[i]->name==sigSender->text() && i!=j) || sigSender->text()=="")
         {
             //that name is already taken, restore previous name
             sigSender->setText(players[j]->name);
             return;
         }
     }
+
     //change this player name
     players[j]->name=sigSender->text();
 }

@@ -6,6 +6,7 @@ menuButton::menuButton(QWidget *parent, QString text)
 {
     //set button's background as transparent
     setStyleSheet("background: transparent");
+
     in=false;
     //set path of click sound
     clickPlayer.setMedia(QMediaContent(QUrl("qrc:/sounds/sounds/button_click.mp3")));
@@ -26,13 +27,11 @@ void menuButton::leaveEvent(QEvent *)
     in=false;
 }
 
-//paintig button
 void menuButton::paintEvent(QPaintEvent *)
 {
     QPainter p(this);
     if (in)
     {
-        //mouse cursor is in the button's area
         //change color of the button
         p.fillRect(QRect(0, 0, width(), height()), QBrush(QColor(255, 215, 0)));
     }
