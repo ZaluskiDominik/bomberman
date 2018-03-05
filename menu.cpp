@@ -248,6 +248,7 @@ void menu::onGameEnded()
     //reappear main menu's window
     erase_lobby();
     create_main_manu();
+    menuMusic.play();
     show();
 
     //take over handling the keyboard events

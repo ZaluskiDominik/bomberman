@@ -13,9 +13,9 @@ public:
     bomb(QPoint pos, QGraphicsScene* scene);
     ~bomb();
 
-    //players that were inside the bomb's shape during its placing at the scene
+    //players that were inside the bomb's rect during its placing at the scene
     //needed to decide whether the bomb should be collideable with them
-    QList<QGraphicsItem*> playersInsideShape;
+    QList<QGraphicsItem*> playersInside;
 
 private:
     //time in miliseconds till bomb explode
@@ -30,7 +30,7 @@ private:
 
     //********************************************
 
-    //add players to playerInsideShape list if they are colliding with the bomb during its creating
+    //add players to playerInside list if they are colliding with the bomb during its creating
     inline void mark_players_inside();
 
     //change bomb's pixmap based on its stage of explosion

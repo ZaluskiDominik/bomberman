@@ -10,9 +10,8 @@ QList<bomb*> bombs;
 bomb::bomb(QPoint pos, QGraphicsScene* scene)
 {
     calculate_bomb_pos(pos);
-    explodeStage=0;
 
-    //check if a bomb is already placed on that position, return and don't create a new one
+    //if a bomb is already placed on that position, return and don't create a new one
     for (auto i=bombs.begin() ; i!=bombs.end() ; i++)
         if ((*i)->x()==this->x() && (*i)->y()==this->y())
         {
@@ -20,11 +19,11 @@ bomb::bomb(QPoint pos, QGraphicsScene* scene)
             return;
         }
 
+    explodeStage=0;
     set_bomb_pixmap();
 
     //add this bomb to list
     bombs.append(this);
-
     //add the bomb to the scene
     scene->addItem(this);
 
@@ -43,7 +42,7 @@ bomb::~bomb()
 
 void bomb::mark_players_inside()
 {
-    playersInsideShape=collidingItems(Qt::IntersectsItemBoundingRect);
+    playersInside=collidingItems(Qt::IntersectsItemBoundingRect);
 }
 
 void bomb::set_bomb_pixmap()
@@ -75,15 +74,16 @@ void bomb::explode()
 
 
     //remove the bomb
-    this->deleteLater();
+    deleteLater();
 }
 
 void bomb::advance_explode()
 {
-    //change bomb's pixmap on next
     explodeStage++;
-    set_bomb_pixmap();
     if (explodeStage==numBombPixmaps)
         //explosion
         explode();
+    else
+        //change bomb's pixmap on next
+        set_bomb_pixmap();
 }

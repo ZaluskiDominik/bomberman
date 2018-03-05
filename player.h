@@ -81,8 +81,8 @@ private:
     //handle pushing bombs, leaving bomb's rect
     void handle_bombs(QList<QGraphicsItem*>& collide);
 
-    //check if player left bomb's shape
-    void left_bomb_shape();
+    //check if player left bomb's rect
+    void left_bomb_rect();
 
     //check for collision with obstacles, wooden chests, bricks or bombs
     bool collision(QList<QGraphicsItem*>& collide);

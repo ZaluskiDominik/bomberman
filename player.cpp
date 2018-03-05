@@ -173,8 +173,8 @@ void player::onMoveTimeout()
         //advance in move animation
         moveStage=(moveStage + 1) % numPixmaps;
 
-        //check if player didn't leave bomb's shape
-        left_bomb_shape();
+        //check if player didn't leave bomb's rect
+        left_bomb_rect();
     }
     else
         //collision
@@ -192,49 +192,54 @@ void player::remove_colliding_players(QList<QGraphicsItem *> &collide)
 
 void player::handle_bombs(QList<QGraphicsItem *> &collide)
 {
-    QList<bomb*>::iterator collidingBomb;
-
     for (int i=0 ; i<collide.size() ; i++)
     {
-        //it's a bomb
         if (typeid(*collide[i])==typeid(bomb))
         {
+            //it's a bomb
+            QList<bomb*>::iterator collidingBomb;
             //find that bomb in bombs list
             for (collidingBomb=bombs.begin() ; (*collidingBomb)!=collide[i] ; collidingBomb++);
 
-            //if playersInsideShape list is not empty
-            if ((*collidingBomb)->playersInsideShape.empty()==false)
+            //if playersInside list is not empty
+            if ((*collidingBomb)->playersInside.empty()==false)
             {
                 //bomb isn't pushable
                 QList<QGraphicsItem*>::iterator j;
-                for (j=(*collidingBomb)->playersInsideShape.begin() ; j!=(*collidingBomb)->playersInsideShape.end() && (*j)!=this ; j++);
-                if (j != (*collidingBomb)->playersInsideShape.end())
+                for (j=(*collidingBomb)->playersInside.begin() ; j!=(*collidingBomb)->playersInside.end() && (*j)!=this ; j++);
+                if (j != (*collidingBomb)->playersInside.end())
                 {
-                    //bomb is not collideable for this player
+                    //this player is inside bomb's rect, so this bomb shouldn't be collideable for this player
                     //remove that bomb from collide list
                     collide.removeOne(collide[i--]);
                 }
             }
             else
             {
-
+                //bomb can be pushed by players
             }
         }
     }
 }
 
-void player::left_bomb_shape()
+void player::left_bomb_rect()
 {
     auto collide=collidingItems(Qt::IntersectsItemBoundingRect);
-    for (auto i=bombs.begin() ; i!=bombs.end() ; i++)
-        if (!collide.contains(*i))  //player isn't colliding with that bomb
-            //remove if player exists in playerInsideList
-            (*i)->playersInsideShape.removeOne(this);
+    for (int i=0 ; i<bombs.size() ; i++)
+    {
+        //if player isn't colliding with that bomb
+        if (!collide.contains(bombs[i]))
+        {
+            //remove if player exists in playersInside list
+            if (bombs[i]->playersInside.removeOne(this))
+                i--;
+        }
+    }
 }
 
 bool player::collision(QList<QGraphicsItem *>& collide)
 {
-    //if player entered brick frame or collide list isn't empty --> there was collision with a block
+    //if player entered brick frame or collide list isn't empty
     if ( (y()<fieldSize) || (y()>scene()->width() - (2*fieldSize)) || (x()<fieldSize) || (x()>scene()->height() - (2*fieldSize)) || (collide.size()) )
         return true;
 
