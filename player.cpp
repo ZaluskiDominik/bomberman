@@ -1,4 +1,5 @@
 #include "player.h"
+#include "flame.h"
 
 extern QList<QGraphicsPixmapItem*> obstacles;
 extern QList<QGraphicsPixmapItem*> chests;
@@ -11,6 +12,7 @@ player::player(const playerData& data, QGraphicsScene *scene)
     :numPixmaps(8)
 {
     scene->addItem(this);
+    setZValue(1);
 
     //import data about player, keys setting
     keys=data.keys;
@@ -21,6 +23,7 @@ player::player(const playerData& data, QGraphicsScene *scene)
     //in the beginning player can place only 1 bomb at any time
     maxNumBombs=1;
     bombsPlaced=0;
+    explosionRange=1;
     //in the beginning of the game player can't push bombs
     bombPushInterv=-1;
 
@@ -46,14 +49,18 @@ void player::key_pressed(int key)
 
     }
     else if (key==keys.bomb)
-        //create bomb
-        new bomb(pos().toPoint(), scene());
+    {
+        //try to create a bomb
+        if (bombsPlaced<maxNumBombs)
+            place_bomb();
+    }
 }
 
 void player::key_released(int key)
 {
     //if currDir is empty after removing released key direction
     if (currDir.removeOne(key))
+    {
         if (currDir.empty())
         {
             //stop moving, reset moving stage
@@ -61,6 +68,7 @@ void player::key_released(int key)
             moveStage=0;
             set_player_pixmap(key);
         }
+    }
 }
 
 void player::setup_player(QGraphicsScene* scene)
@@ -130,6 +138,25 @@ void player::change_player_pos(int dir, int dist)
         setX(x() + dist);
 }
 
+void player::place_bomb()
+{
+    QPoint bombPos=bomb::calculate_bomb_pos(pos().toPoint());
+
+    for (auto i=bombs.begin() ; i!=bombs.end() ; i++)
+    {
+        if ((*i)->x()==bombPos.x() && (*i)->y()==bombPos.y())
+        {
+            //bomb on that position already exists, so don't create another one
+            return;
+        }
+    }
+
+    //create a new bomb
+    bombsPlaced++;
+    bomb* newBomb=new bomb(bombPos, explosionRange, this, scene());
+    QObject::connect(newBomb, SIGNAL(bombExploded()), this, SLOT(onBombExploded()));
+}
+
 void player::onMoveTimeout()
 {
     int distance, dirIter=currDir.size()-1;
@@ -152,7 +179,7 @@ void player::onMoveTimeout()
             //get the list of items colliding with the player
             collide=collidingItems(Qt::IntersectsItemBoundingRect);
             //remove players from colliding items list
-            remove_colliding_players(collide);
+            remove_colliding_players_or_flame(collide);
 
             //bomb collision
             handle_bombs(collide);
@@ -183,10 +210,10 @@ void player::onMoveTimeout()
     set_player_pixmap(currDir[dirIter]);
 }
 
-void player::remove_colliding_players(QList<QGraphicsItem *> &collide)
+void player::remove_colliding_players_or_flame(QList<QGraphicsItem *> &collide)
 {
     for (int i=0 ; i<collide.size() ; i++)
-        if (typeid(*collide[i])==typeid(player))
+        if (typeid(*collide[i])==typeid(player) || typeid(*collide[i])==typeid(flame))
             collide.removeOne(collide[i--]);
 }
 
@@ -196,18 +223,17 @@ void player::handle_bombs(QList<QGraphicsItem *> &collide)
     {
         if (typeid(*collide[i])==typeid(bomb))
         {
-            //it's a bomb
-            QList<bomb*>::iterator collidingBomb;
-            //find that bomb in bombs list
-            for (collidingBomb=bombs.begin() ; (*collidingBomb)!=collide[i] ; collidingBomb++);
+            bomb* collideBomb=dynamic_cast<bomb*>(collide[i]);
 
             //if playersInside list is not empty
-            if ((*collidingBomb)->playersInside.empty()==false)
+            if (!collideBomb->playersInside.empty())
             {
                 //bomb isn't pushable
-                QList<QGraphicsItem*>::iterator j;
-                for (j=(*collidingBomb)->playersInside.begin() ; j!=(*collidingBomb)->playersInside.end() && (*j)!=this ; j++);
-                if (j != (*collidingBomb)->playersInside.end())
+                QList<QGraphicsItem*>::iterator it;
+                //check if this player is in playersInside list
+                for (it=collideBomb->playersInside.begin() ; it!=collideBomb->playersInside.end() && this!=*it ; it++);
+
+                if (it!=collideBomb->playersInside.end())
                 {
                     //this player is inside bomb's rect, so this bomb shouldn't be collideable for this player
                     //remove that bomb from collide list
@@ -245,4 +271,14 @@ bool player::collision(QList<QGraphicsItem *>& collide)
 
     //there wasn't any collision
     return false;
+}
+
+void player::onBombExploded()
+{
+    bomb* bombSender=qobject_cast<bomb*>(sender());
+    //if it's the player's bomb then decrement the number of the player's used bombs
+    if (bombSender->whoseBomb==this)
+        bombsPlaced--;
+
+    emit drawFlamesRequest(bombSender);
 }

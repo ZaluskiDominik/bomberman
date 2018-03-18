@@ -31,7 +31,8 @@ SOURCES += \
     player.cpp \
     bomb.cpp \
     menu.cpp \
-    otherFunctions.cpp
+    otherFunctions.cpp \
+    flame.cpp
 
 HEADERS += \
     menubutton.h \
@@ -40,7 +41,8 @@ HEADERS += \
     player.h \
     bomb.h \
     menu.h \
-    otherFunctions.h
+    otherFunctions.h \
+    flame.h
 
 FORMS +=
 

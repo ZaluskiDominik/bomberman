@@ -7,7 +7,7 @@
 extern playerCart* players[4];
 
 menu::menu(QWidget *parent) :
-    QDialog(parent, Qt::WindowCloseButtonHint | Qt::WindowTitleHint | Qt::WindowMaximizeButtonHint), numMenu(3)
+    QDialog(parent, Qt::WindowCloseButtonHint | Qt::WindowTitleHint | Qt::WindowMaximizeButtonHint | Qt::WindowMinimizeButtonHint), numMenu(3)
 {
     //set the window's title and the window's resolution
     setWindowTitle("Bomberman");

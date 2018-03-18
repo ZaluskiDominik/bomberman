@@ -2,6 +2,7 @@
 #include <fstream>
 #include <QMessageBox>
 #include <algorithm>
+#include "flame.h"
 
 //every field is a square
 //length of the side of the square
@@ -17,7 +18,7 @@ QList<QGraphicsPixmapItem*> chests;
 QList<player*> gamePlayers;
 
 game::game(QWidget* parent, QSize resolution, const playerData *playersData, int numPlayers)
-    :QDialog(parent, Qt::WindowCloseButtonHint | Qt::WindowTitleHint)
+    :QDialog(parent, Qt::WindowCloseButtonHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint)
 {
     //handle keybord events
     grabKeyboard();
@@ -52,7 +53,7 @@ void game::setup_graphics()
     view=new QGraphicsView(scene, this);
 
     //calculate geometry of graphics view and scene
-    int xOffset=(0.8 * width() - (w * fieldSize))/2 + (0.2 * width()), yOffset=(height() - (h * fieldSize))/2;
+    int xOffset=(width() - (w * fieldSize))/2, yOffset=(height() - (h * fieldSize))/2;
     view->setGeometry(xOffset, yOffset, w * fieldSize, h * fieldSize);
     scene->setSceneRect(0, 0, view->width(), view->height());
     view->show();
@@ -102,7 +103,7 @@ bool game::load_map()
     h+=2;
 
     //calculate the map size
-    fieldSize=std::min(height()/h, int(width() * 0.8 / w));
+    fieldSize=std::min(height()/h, int(width()/w));
 
     //create graphics scene
     setup_graphics();
@@ -165,7 +166,34 @@ void game::draw_bricks()
 void game::spawn_players(const playerData* data, int numPlayers)
 {
     for (int i=0 ; i<numPlayers ; i++)
+    {
         gamePlayers.append(new player(data[i], scene));
+        QObject::connect(gamePlayers[i], SIGNAL(drawFlamesRequest(bomb*)), this, SLOT(onDrawFlameRequest(bomb*)));
+    }
+}
+
+void game::create_flame_line(QPoint direction, const bomb& b)
+{
+    QPoint flamePos(b.x(), b.y());
+    int numFlames=b.range;
+    if (direction.x()==fieldSize)
+    {
+        //middle flame will be created
+        numFlames++;
+        flamePos-=direction;
+    }
+
+    for (int i=0 ; i<numFlames ; i++)
+    {
+        flamePos+=direction;
+
+        flame* newFlame=new flame;
+        newFlame->setPos(flamePos);
+        scene->addItem(newFlame);
+
+        auto collide=b.collidingItems(Qt::IntersectsItemBoundingRect);
+        //bombs, blocks
+    }
 }
 
 //KEY EVENTS
@@ -188,4 +216,16 @@ void game::keyReleaseEvent(QKeyEvent *e)
     //let each player handle releasing keys
     for (int i=0 ; i<gamePlayers.size() ; i++)
         gamePlayers[i]->key_released(e->key());
+}
+
+void game::onDrawFlameRequest(bomb *b)
+{
+    //create flames
+    create_flame_line(QPoint(-fieldSize, 0), *b);
+    create_flame_line(QPoint(fieldSize, 0), *b);
+    create_flame_line(QPoint(0, -fieldSize), *b);
+    create_flame_line(QPoint(0, fieldSize), *b);
+
+    //delete the bomb
+    b->deleteLater();
 }

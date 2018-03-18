@@ -7,31 +7,24 @@ extern int fieldSize;
 //lists with bombs placed currently at the scene
 QList<bomb*> bombs;
 
-bomb::bomb(QPoint pos, QGraphicsScene* scene)
+bomb::bomb(QPoint pos, const int explosionRange, const QGraphicsItem * const owner, QGraphicsScene* scene)
+    :whoseBomb(owner), range(explosionRange)
 {
-    calculate_bomb_pos(pos);
-
-    //if a bomb is already placed on that position, return and don't create a new one
-    for (auto i=bombs.begin() ; i!=bombs.end() ; i++)
-        if ((*i)->x()==this->x() && (*i)->y()==this->y())
-        {
-            deleteLater();
-            return;
-        }
-
-    explodeStage=0;
-    set_bomb_pixmap();
-
     //add this bomb to list
     bombs.append(this);
     //add the bomb to the scene
     scene->addItem(this);
 
+    setPos(pos);
+
+    explodeStage=0;
+    set_bomb_pixmap();
+
     mark_players_inside();
 
     //start counting time
     explodeTimer.start(timeToExplode/numBombPixmaps);
-    QObject::connect(&explodeTimer, SIGNAL(timeout()), this, SLOT(advance_explode()));
+    QObject::connect(&explodeTimer, SIGNAL(timeout()), this, SLOT(advanceExplode()));
 }
 
 bomb::~bomb()
@@ -50,39 +43,41 @@ void bomb::set_bomb_pixmap()
     setPixmap(QPixmap(":/images/img/bomb/bomb.png").scaled(fieldSize, fieldSize));
 }
 
-void bomb::calculate_bomb_pos(QPoint pos)
+QPoint bomb::calculate_bomb_pos(QPoint pos)
 {
+    QPoint resultPos;
     int temp=pos.y()/fieldSize;
 
     //set y position
     if (pos.y() - (fieldSize * temp)<=fieldSize/2)
-        setY(temp * fieldSize);
+        resultPos.setY(temp * fieldSize);
     else
-        setY((temp + 1) * fieldSize);
+        resultPos.setY((temp + 1) * fieldSize);
 
     //set x position
     temp=pos.x()/fieldSize;
     if (pos.x() - (fieldSize * temp)<=fieldSize/2)
-        setX(temp * fieldSize);
+        resultPos.setX(temp * fieldSize);
     else
-        setX((temp + 1) * fieldSize);
+        resultPos.setX((temp + 1) * fieldSize);
+
+    return resultPos;
 }
 
 void bomb::explode()
 {
-    //create flame in bomb's row
-
-
-    //remove the bomb
-    deleteLater();
+    explodeTimer.stop();
+    emit bombExploded();
 }
 
-void bomb::advance_explode()
+void bomb::advanceExplode()
 {
     explodeStage++;
     if (explodeStage==numBombPixmaps)
+    {
         //explosion
         explode();
+    }
     else
         //change bomb's pixmap on next
         set_bomb_pixmap();

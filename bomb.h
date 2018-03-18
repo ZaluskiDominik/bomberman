@@ -4,18 +4,26 @@
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QTimer>
+#include <QVector2D>
 
 class bomb : public QObject, public QGraphicsPixmapItem
 {
     Q_OBJECT
+    friend class game;
 
 public:
-    bomb(QPoint pos, QGraphicsScene* scene);
+    bomb(QPoint pos, const int explosionRange, const QGraphicsItem* const owner, QGraphicsScene* scene);
     ~bomb();
 
     //players that were inside the bomb's rect during its placing at the scene
     //needed to decide whether the bomb should be collideable with them
     QList<QGraphicsItem*> playersInside;
+
+    //player who placed the bomb
+    const QGraphicsItem* const whoseBomb;
+
+    //compute point where bomb should be placed
+    static QPoint calculate_bomb_pos(QPoint pos);
 
 private:
     //time in miliseconds till bomb explode
@@ -24,6 +32,9 @@ private:
     //number of bomb's pixmaps which make animation
     static const int numBombPixmaps=3;
     int explodeStage;
+
+    //range of flames after explosion
+    const int range;
 
     //counts time till bomb explode
     QTimer explodeTimer;
@@ -36,15 +47,15 @@ private:
     //change bomb's pixmap based on its stage of explosion
     void set_bomb_pixmap();
 
-    //compute point where bomb will be placed
-    void calculate_bomb_pos(QPoint pos);
-
     //detonate the bomb
     void explode();
 
 private slots:
     //next bomb's pixmap
-    void advance_explode();
+    void advanceExplode();
+
+signals:
+    void bombExploded();
 
 };
 

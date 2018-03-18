@@ -15,6 +15,10 @@ class game : public QDialog
     Q_OBJECT
 public:
     explicit game(QWidget *parent, QSize resolution, const playerData* playersData, int numPlayers);
+    ~game()
+    {
+        scene->clear();
+    }
 
 private:
     //enum type for identyfing game's fields
@@ -54,9 +58,15 @@ private:
     //create players and set their positions
     void spawn_players(const playerData *data, int numPlayers);
 
+    void create_flame_line(QPoint direction, const bomb &b);
+
 protected:
     void keyPressEvent(QKeyEvent* e);
     void keyReleaseEvent(QKeyEvent* e);
+
+private slots:
+    //handle creating bomb explosion's flames
+    void onDrawFlameRequest(bomb* b);
 
 };
 

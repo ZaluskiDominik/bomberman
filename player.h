@@ -32,6 +32,7 @@ private:
     playerColor::color color;
     int lifes;
     int maxNumBombs;
+    int explosionRange;
 
     //player's number of bombs currently placed at the scene
     int bombsPlaced;
@@ -75,8 +76,10 @@ private:
     //move player in given direction and distance
     void change_player_pos(int dir, int dist);
 
-    //remove colliding players from collide list
-    void remove_colliding_players(QList<QGraphicsItem*>& collide);
+    void place_bomb();
+
+    //remove colliding players or flame from collide list
+    void remove_colliding_players_or_flame(QList<QGraphicsItem*>& collide);
 
     //handle pushing bombs, leaving bomb's rect
     void handle_bombs(QList<QGraphicsItem*>& collide);
@@ -89,6 +92,13 @@ private:
 
 private slots:
     void onMoveTimeout();
+
+    void onBombExploded();
+
+signals:
+    //signal sended to game class when bomb explodes
+    void drawFlamesRequest(bomb*);
+
 };
 
 #endif // PLAYER_H
