@@ -15,15 +15,14 @@ class game : public QDialog
     Q_OBJECT
 public:
     explicit game(QWidget *parent, QSize resolution, const playerData* playersData, int numPlayers);
-    ~game()
-    {
-        scene->clear();
-    }
+    ~game();
 
 private:
     //enum type for identyfing game's fields
     //obstacle - undestroyable, road - background, Brick - frame, Chest - destroyable
     enum fieldType{Road=0, Obstacle, Chest, Brick};
+
+    const int numPowerups;
 
     //field pixmaps
     QPixmap fields[3];
@@ -55,10 +54,17 @@ private:
     //draw frame made of bricks around graphicsView
     void draw_bricks();
 
+    //set all powerups under random chests
+    void create_powerups();
+
     //create players and set their positions
     void spawn_players(const playerData *data, int numPlayers);
 
     void create_flame_line(QPoint direction, const bomb &b);
+
+    bool is_obstacle(const QGraphicsItem* const item);
+
+    bool is_chest(const QGraphicsItem* const item);
 
 protected:
     void keyPressEvent(QKeyEvent* e);

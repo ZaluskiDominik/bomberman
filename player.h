@@ -13,17 +13,11 @@
 
 class player : public QObject, public QGraphicsPixmapItem
 {
-    friend class bomb;
+    friend class game;
     Q_OBJECT
 
 public:
     player(const playerData& data, QGraphicsScene* scene);
-
-    //add new direction if it's one of this player's keys
-    void key_pressed(int key);
-
-    //release key if it's one of this player's keys
-    void key_released(int key);
 
 private:
     //player's keys selected in settings menu
@@ -33,6 +27,12 @@ private:
     int lifes;
     int maxNumBombs;
     int explosionRange;
+
+    //after explosion hit player is immortal during few moments
+    bool immortal;
+    int immortalTimeCounter;
+    static const int immortalityTime=3000;
+    QTimer immortalTimer;
 
     //player's number of bombs currently placed at the scene
     int bombsPlaced;
@@ -64,6 +64,12 @@ private:
 
     //**********************************************************************
 
+    //add new direction if it's one of this player's keys
+    void key_pressed(int key);
+
+    //release key if it's one of this player's keys
+    void key_released(int key);
+
     //set player's position and pixmap
     void setup_player(QGraphicsScene *scene);
 
@@ -79,7 +85,7 @@ private:
     void place_bomb();
 
     //remove colliding players or flame from collide list
-    void remove_colliding_players_or_flame(QList<QGraphicsItem*>& collide);
+    void remove_colliding_players_and_flame(QList<QGraphicsItem*>& collide);
 
     //handle pushing bombs, leaving bomb's rect
     void handle_bombs(QList<QGraphicsItem*>& collide);
@@ -90,10 +96,14 @@ private:
     //check for collision with obstacles, wooden chests, bricks or bombs
     bool collision(QList<QGraphicsItem*>& collide);
 
+    void explosion_hit();
+
 private slots:
     void onMoveTimeout();
 
     void onBombExploded();
+
+    void onImmortalTimeout();
 
 signals:
     //signal sended to game class when bomb explodes

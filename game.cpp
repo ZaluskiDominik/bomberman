@@ -2,7 +2,9 @@
 #include <fstream>
 #include <QMessageBox>
 #include <algorithm>
+#include <ctime>
 #include "flame.h"
+#include "powerup.h"
 
 //every field is a square
 //length of the side of the square
@@ -17,8 +19,11 @@ QList<QGraphicsPixmapItem*> chests;
 //list with players in game
 QList<player*> gamePlayers;
 
+//lists with bombs placed currently at the scene
+QList<bomb*> bombs;
+
 game::game(QWidget* parent, QSize resolution, const playerData *playersData, int numPlayers)
-    :QDialog(parent, Qt::WindowCloseButtonHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint)
+    :QDialog(parent, Qt::WindowCloseButtonHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint), numPowerups(15)
 {
     //handle keybord events
     grabKeyboard();
@@ -42,8 +47,25 @@ game::game(QWidget* parent, QSize resolution, const playerData *playersData, int
     //draw graphicsView's frame made of brick
     draw_bricks();
 
+    create_powerups();
+
     //draw players
     spawn_players(playersData, numPlayers);
+}
+
+game::~game()
+{
+    //delete players
+    for (auto i=gamePlayers.begin() ; i!=gamePlayers.end() ; i++)
+        (*i)->deleteLater();
+    gamePlayers.clear();
+
+    //clear all lists
+    chests.clear();
+    obstacles.clear();
+    bombs.clear();
+
+    scene->clear();
 }
 
 void game::setup_graphics()
@@ -163,6 +185,31 @@ void game::draw_bricks()
     }
 }
 
+void game::create_powerups()
+{
+    QList<int> chestTaken;
+    int randChest;
+    for (int i=0 ; i<numPowerups ; i++)
+    {
+        randChest=rand() % chests.size();
+        if (chestTaken.contains(randChest))
+            i--;
+        else
+        {
+            powerup* item=new powerup;
+            if (i % powerup::numDiffPowers==0)
+                item->set_powerType(powerup::powerupType::NewBomb);
+            else if (i % powerup::numDiffPowers==1)
+                item->set_powerType(powerup::powerupType::Boots);
+            else if (i % powerup::numDiffPowers==2)
+                item->set_powerType(powerup::powerupType::BiggerRange);
+
+            item->setPos(chests[randChest]->pos());
+            scene->addItem(item);
+        }
+    }
+}
+
 void game::spawn_players(const playerData* data, int numPlayers)
 {
     for (int i=0 ; i<numPlayers ; i++)
@@ -183,7 +230,7 @@ void game::create_flame_line(QPoint direction, const bomb& b)
         flamePos-=direction;
     }
 
-    for (int i=0 ; i<numFlames ; i++)
+    for (int j=0 ; j<numFlames ; j++)
     {
         flamePos+=direction;
 
@@ -191,9 +238,49 @@ void game::create_flame_line(QPoint direction, const bomb& b)
         newFlame->setPos(flamePos);
         scene->addItem(newFlame);
 
-        auto collide=b.collidingItems(Qt::IntersectsItemBoundingRect);
-        //bombs, blocks
+        auto collide=newFlame->collidingItems(Qt::IntersectsItemBoundingRect);
+        for (auto i=collide.begin() ; i!=collide.end() ; i++)
+        {
+            if (typeid(**i)==typeid(player))
+                static_cast<player*>(*i)->explosion_hit();
+            else if (is_obstacle(*i) || ( (*i)->x()==0 ) || ( (*i)->x()==width() - fieldSize ) || ( (*i)->y()==0) || ( (*i)->y()==height() - fieldSize ) )
+            {
+                //obstacle or brick
+                //stop drawing flames, delete flame added at last
+                newFlame->deleteLater();
+                j=numFlames;
+                break;
+            }
+            else if (typeid(**i)==typeid(bomb))
+            {
+
+            }
+            else if (is_chest(*i))
+            {
+                //stop drawing flames, destroy chest
+                delete (*i);
+                j=numFlames;
+                chests.removeOne(static_cast<QGraphicsPixmapItem*>(*i));
+                break;
+            }
+        }
     }
+}
+
+bool game::is_obstacle(const QGraphicsItem * const item)
+{
+    for (auto i =obstacles.begin() ; i!=obstacles.end() ; i++)
+        if ((*i)==item)
+            return true;
+    return false;
+}
+
+bool game::is_chest(const QGraphicsItem * const item)
+{
+    for (auto i=chests.begin() ; i!=chests.end() ; i++)
+        if ((*i)==item)
+            return true;
+    return false;
 }
 
 //KEY EVENTS

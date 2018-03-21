@@ -39,6 +39,9 @@
         <file>img/Flame/Flame_F02.png</file>
         <file>img/Flame/Flame_F03.png</file>
         <file>img/Flame/Flame_F04.png</file>
+        <file>img/powerups/BombPowerup.png</file>
+        <file>img/powerups/FlamePowerup.png</file>
+        <file>img/powerups/SpeedPowerup.png</file>
     </qresource>
     <qresource prefix="/sounds">
         <file>sounds/button_click.mp3</file>

@@ -19,6 +19,7 @@ player::player(const playerData& data, QGraphicsScene *scene)
     name=data.name;
     color=string_to_playerColor(data.color);
     lifes=2;
+    immortal=false;
 
     //in the beginning player can place only 1 bomb at any time
     maxNumBombs=1;
@@ -36,10 +37,15 @@ player::player(const playerData& data, QGraphicsScene *scene)
     setup_player(scene);
 
     QObject::connect(&moveTimer, SIGNAL(timeout()), this, SLOT(onMoveTimeout()));
+    QObject::connect(&immortalTimer, SIGNAL(timeout()), this, SLOT(onImmortalTimeout()));
 }
 
 void player::key_pressed(int key)
 {
+    //if players isn't on scene
+    if (scene()==0)
+        return;
+
     if (key==keys.up || key==keys.down || key==keys.left || key==keys.right)
     {
         currDir.append(key);
@@ -179,7 +185,7 @@ void player::onMoveTimeout()
             //get the list of items colliding with the player
             collide=collidingItems(Qt::IntersectsItemBoundingRect);
             //remove players from colliding items list
-            remove_colliding_players_or_flame(collide);
+            remove_colliding_players_and_flame(collide);
 
             //bomb collision
             handle_bombs(collide);
@@ -210,11 +216,18 @@ void player::onMoveTimeout()
     set_player_pixmap(currDir[dirIter]);
 }
 
-void player::remove_colliding_players_or_flame(QList<QGraphicsItem *> &collide)
+void player::remove_colliding_players_and_flame(QList<QGraphicsItem *> &collide)
 {
     for (int i=0 ; i<collide.size() ; i++)
-        if (typeid(*collide[i])==typeid(player) || typeid(*collide[i])==typeid(flame))
+    {
+        if (typeid(*collide[i])==typeid(player))
             collide.removeOne(collide[i--]);
+        else if (typeid(*collide[i])==typeid(flame))
+        {
+            collide.removeOne(collide[i--]);
+            explosion_hit();
+        }
+    }
 }
 
 void player::handle_bombs(QList<QGraphicsItem *> &collide)
@@ -273,6 +286,29 @@ bool player::collision(QList<QGraphicsItem *>& collide)
     return false;
 }
 
+void player::explosion_hit()
+{
+    //if player was immortal hit don't affect him
+    if (immortal)
+        return;
+
+    lifes--;
+    if (lifes>0)
+    {
+        //still alive
+        immortal=true;
+        immortalTimeCounter=0;
+        setOpacity(0.25);
+        immortalTimer.start(immortalityTime/10);
+    }
+    else
+    {
+        //end of game for this player
+        QObject::disconnect(&moveTimer, SIGNAL(timeout()), this, SLOT(onMoveTimeout()));
+        scene()->removeItem(this);
+    }
+}
+
 void player::onBombExploded()
 {
     bomb* bombSender=qobject_cast<bomb*>(sender());
@@ -281,4 +317,18 @@ void player::onBombExploded()
         bombsPlaced--;
 
     emit drawFlamesRequest(bombSender);
+}
+
+void player::onImmortalTimeout()
+{
+    immortalTimeCounter+=immortalityTime/10;
+    if (immortalTimeCounter>=immortalityTime)
+    {
+        //end immortality
+        immortalTimer.stop();
+        immortal=false;
+        setOpacity(1);
+    }
+    else
+        setOpacity(opacity()==1 ? 0.25 : 1.0);
 }

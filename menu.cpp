@@ -246,6 +246,7 @@ void menu::onStartGameClicked()
 void menu::onGameEnded()
 {
     //reappear main menu's window
+    gameWnd->deleteLater();
     erase_lobby();
     create_main_manu();
     menuMusic.play();

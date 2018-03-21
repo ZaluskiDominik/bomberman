@@ -4,8 +4,7 @@
 
 extern int fieldSize;
 
-//lists with bombs placed currently at the scene
-QList<bomb*> bombs;
+extern QList<bomb*> bombs;
 
 bomb::bomb(QPoint pos, const int explosionRange, const QGraphicsItem * const owner, QGraphicsScene* scene)
     :whoseBomb(owner), range(explosionRange)

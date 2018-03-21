@@ -31,7 +31,7 @@ void flame::onTimeout()
 
     timeCounter+=timeoutPeriod;
     //if this flame's time of existance is up then delete this flame
-    if (timeCounter==existTime)
+    if (timeCounter>=existTime)
     {
         timer.stop();
         deleteLater();
