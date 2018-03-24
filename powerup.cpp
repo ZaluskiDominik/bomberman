@@ -5,6 +5,7 @@ extern int fieldSize;
 powerup::powerup()
 {
     setZValue(-1);
+    pickable=false;
 }
 
 void powerup::set_powerType(powerupType p)

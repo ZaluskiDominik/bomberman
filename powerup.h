@@ -17,10 +17,21 @@ public:
         return power;
     }
 
+    bool is_pickable()
+    {
+        return pickable;
+    }
+
+    void set_as_pickable()
+    {
+        pickable=true;
+    }
+
     void set_powerType(powerupType p);
 
 private:
     powerupType power;
+    bool pickable;
 
 };
 

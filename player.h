@@ -8,6 +8,7 @@
 #include <QList>
 #include "otherFunctions.h"
 #include "bomb.h"
+#include "powerup.h"
 
 //class representing a player in the game
 
@@ -48,7 +49,7 @@ private:
     int movingTime;
 
     //distance which player moves each time
-    static const int movingDist=3;
+    static int movingDist;
 
     //timer for measuring time between moves
     QTimer moveTimer;
@@ -84,19 +85,26 @@ private:
 
     void place_bomb();
 
+    //player got hit by flames
+    void explosion_hit();
+
+    //COLLISIONS*******************************
+
     //remove colliding players or flame from collide list
-    void remove_colliding_players_and_flame(QList<QGraphicsItem*>& collide);
+    void remove_colliding_players(QList<QGraphicsItem*>& collide);
 
     //handle pushing bombs, leaving bomb's rect
     void handle_bombs(QList<QGraphicsItem*>& collide);
+
+    void handle_flames(QList<QGraphicsItem*>& collide);
+
+    void handle_powerups(QList<QGraphicsItem*>& collide);
 
     //check if player left bomb's rect
     void left_bomb_rect();
 
     //check for collision with obstacles, wooden chests, bricks or bombs
     bool collision(QList<QGraphicsItem*>& collide);
-
-    void explosion_hit();
 
 private slots:
     void onMoveTimeout();
@@ -105,9 +113,13 @@ private slots:
 
     void onImmortalTimeout();
 
+    void onPlayerDead();
+
 signals:
     //signal sended to game class when bomb explodes
     void drawFlamesRequest(bomb*);
+
+    void dead();
 
 };
 

@@ -3,6 +3,8 @@
 #include <QKeyEvent>
 #include <QCoreApplication>
 
+int fieldSize;
+
 //player slots in lobby(max 4 players)
 extern playerCart* players[4];
 
@@ -22,6 +24,8 @@ menu::menu(QWidget *parent) :
     //connect slot keeping track of music players's position
     connect (&menuMusic, SIGNAL(positionChanged(qint64)), this, SLOT(onPosChanged()));
     menuMusic.play();
+
+    fieldSize=60;
 }
 
 void menu::erase_main_menu()
@@ -236,7 +240,7 @@ void menu::onStartGameClicked()
     export_playersData(playersData);
 
     //show game's window
-    gameWnd=new game(this, QSize(1000, 600), playersData, playerCart::playersAddedCount());
+    gameWnd=new game(this, playersData, playerCart::playersAddedCount());
     gameWnd->show();
 
     //connect slot witch will react on the end of the game

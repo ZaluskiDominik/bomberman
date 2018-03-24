@@ -14,7 +14,7 @@ class game : public QDialog
 {
     Q_OBJECT
 public:
-    explicit game(QWidget *parent, QSize resolution, const playerData* playersData, int numPlayers);
+    explicit game(QWidget *parent, const playerData* playersData, int numPlayers);
     ~game();
 
 private:

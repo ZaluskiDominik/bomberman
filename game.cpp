@@ -4,11 +4,10 @@
 #include <algorithm>
 #include <ctime>
 #include "flame.h"
-#include "powerup.h"
 
 //every field is a square
 //length of the side of the square
-int fieldSize;
+extern int fieldSize;
 
 //list with undestroyable obstacles
 QList<QGraphicsPixmapItem*> obstacles;
@@ -22,14 +21,12 @@ QList<player*> gamePlayers;
 //lists with bombs placed currently at the scene
 QList<bomb*> bombs;
 
-game::game(QWidget* parent, QSize resolution, const playerData *playersData, int numPlayers)
+game::game(QWidget* parent, const playerData *playersData, int numPlayers)
     :QDialog(parent, Qt::WindowCloseButtonHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint), numPowerups(15)
 {
     //handle keybord events
     grabKeyboard();
 
-    //set window resolution and title
-    setFixedSize(resolution);
     setWindowTitle("Bomberman");
 
     load_pixmaps();
@@ -74,9 +71,7 @@ void game::setup_graphics()
     scene=new QGraphicsScene(this);
     view=new QGraphicsView(scene, this);
 
-    //calculate geometry of graphics view and scene
-    int xOffset=(width() - (w * fieldSize))/2, yOffset=(height() - (h * fieldSize))/2;
-    view->setGeometry(xOffset, yOffset, w * fieldSize, h * fieldSize);
+    view->setGeometry(0, 0, width(), height());
     scene->setSceneRect(0, 0, view->width(), view->height());
     view->show();
 
@@ -124,8 +119,8 @@ bool game::load_map()
     w+=2;
     h+=2;
 
-    //calculate the map size
-    fieldSize=std::min(height()/h, int(width()/w));
+    //set window resolution
+    setFixedSize(fieldSize * w, fieldSize * h);
 
     //create graphics scene
     setup_graphics();
@@ -212,6 +207,7 @@ void game::create_powerups()
 
 void game::spawn_players(const playerData* data, int numPlayers)
 {
+    player::movingDist=fieldSize/10;
     for (int i=0 ; i<numPlayers ; i++)
     {
         gamePlayers.append(new player(data[i], scene));
@@ -239,7 +235,8 @@ void game::create_flame_line(QPoint direction, const bomb& b)
         scene->addItem(newFlame);
 
         auto collide=newFlame->collidingItems(Qt::IntersectsItemBoundingRect);
-        for (auto i=collide.begin() ; i!=collide.end() ; i++)
+        //go through the list in reversed order
+        for (auto i=collide.rbegin() ; i!=collide.rend() ; i++)
         {
             if (typeid(**i)==typeid(player))
                 static_cast<player*>(*i)->explosion_hit();
@@ -248,8 +245,7 @@ void game::create_flame_line(QPoint direction, const bomb& b)
                 //obstacle or brick
                 //stop drawing flames, delete flame added at last
                 newFlame->deleteLater();
-                j=numFlames;
-                break;
+                return;
             }
             else if (typeid(**i)==typeid(bomb))
             {
@@ -258,10 +254,18 @@ void game::create_flame_line(QPoint direction, const bomb& b)
             else if (is_chest(*i))
             {
                 //stop drawing flames, destroy chest
-                delete (*i);
-                j=numFlames;
                 chests.removeOne(static_cast<QGraphicsPixmapItem*>(*i));
-                break;
+                delete (*i);
+                newFlame->deleteLater();
+                return;
+            }
+            else if (typeid(**i)==typeid(powerup))
+            {
+                powerup* item=static_cast<powerup*>(*i);
+                if (item->is_pickable())
+                    delete item;
+                else
+                    item->set_as_pickable();
             }
         }
     }

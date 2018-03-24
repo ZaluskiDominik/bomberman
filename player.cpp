@@ -6,13 +6,15 @@ extern QList<QGraphicsPixmapItem*> chests;
 extern QList<bomb*> bombs;
 extern int fieldSize;
 
+int player::movingDist;
+
 //************************************************************************************
 
 player::player(const playerData& data, QGraphicsScene *scene)
     :numPixmaps(8)
 {
     scene->addItem(this);
-    setZValue(1);
+    setZValue(2);
 
     //import data about player, keys setting
     keys=data.keys;
@@ -28,7 +30,7 @@ player::player(const playerData& data, QGraphicsScene *scene)
     //in the beginning of the game player can't push bombs
     bombPushInterv=-1;
 
-    movingTime=20;
+    movingTime=40;
     moveStage=0;
 
     //load player's pixmaps
@@ -165,69 +167,54 @@ void player::place_bomb()
 
 void player::onMoveTimeout()
 {
-    int distance, dirIter=currDir.size()-1;
+    int dirIter=currDir.size()-1;
     //save player position
     QPoint originPoint(x(), y());
     QList<QGraphicsItem*> collide;
 
     do
     {
-        distance=movingDist;
-        //while player collide, each time try to move smaller distance
-        do
-        {
-            //reset player's position to origin
-            setPos(originPoint);
+        //reset player's position to origin
+        setPos(originPoint);
 
-            //move player
-            change_player_pos(currDir.at(dirIter), distance);
+        //move player
+        change_player_pos(currDir[dirIter], movingDist);
 
-            //get the list of items colliding with the player
-            collide=collidingItems(Qt::IntersectsItemBoundingRect);
-            //remove players from colliding items list
-            remove_colliding_players_and_flame(collide);
+        //get the list of items colliding with the player
+        collide=collidingItems(Qt::IntersectsItemBoundingRect);
+        //remove players from colliding items list
+        remove_colliding_players(collide);
 
-            //bomb collision
-            handle_bombs(collide);
-
-            distance--;
-        }
-        while (collision(collide));
-
-        //change direction to next direction in currDir list
-        dirIter--;
+        handle_flames(collide);
+        handle_powerups(collide);
+        handle_bombs(collide);
     }
-    while (dirIter>=0 && distance==-1);
-
+    while (--dirIter >= 0 && collision(collide));
     dirIter++;
-    if (distance!=-1)
+
+    if (collision(collide))
+    {
+        //collision
+        moveStage=0;
+        setPos(originPoint);
+    }
+    else
     {
         //no collision
         //advance in move animation
         moveStage=(moveStage + 1) % numPixmaps;
-
-        //check if player didn't leave bomb's rect
+        //check if player left bomb's rect
         left_bomb_rect();
     }
-    else
-        //collision
-        moveStage=0;
 
     set_player_pixmap(currDir[dirIter]);
 }
 
-void player::remove_colliding_players_and_flame(QList<QGraphicsItem *> &collide)
+void player::remove_colliding_players(QList<QGraphicsItem *> &collide)
 {
     for (int i=0 ; i<collide.size() ; i++)
-    {
         if (typeid(*collide[i])==typeid(player))
             collide.removeOne(collide[i--]);
-        else if (typeid(*collide[i])==typeid(flame))
-        {
-            collide.removeOne(collide[i--]);
-            explosion_hit();
-        }
-    }
 }
 
 void player::handle_bombs(QList<QGraphicsItem *> &collide)
@@ -236,7 +223,7 @@ void player::handle_bombs(QList<QGraphicsItem *> &collide)
     {
         if (typeid(*collide[i])==typeid(bomb))
         {
-            bomb* collideBomb=dynamic_cast<bomb*>(collide[i]);
+            bomb* collideBomb=static_cast<bomb*>(collide[i]);
 
             //if playersInside list is not empty
             if (!collideBomb->playersInside.empty())
@@ -257,6 +244,51 @@ void player::handle_bombs(QList<QGraphicsItem *> &collide)
             {
                 //bomb can be pushed by players
             }
+        }
+    }
+}
+
+void player::handle_flames(QList<QGraphicsItem *> &collide)
+{
+    for (int i=0 ; i<collide.size() ; i++)
+    {
+        if (typeid(*collide[i])==typeid(flame))
+        {
+            collide.removeOne(collide[i--]);
+            explosion_hit();
+        }
+    }
+}
+
+void player::handle_powerups(QList<QGraphicsItem *> &collide)
+{
+    for (auto i=collide.begin() ; i!=collide.end() ; i++)
+    {
+        if (typeid(**i)==typeid(powerup) && ( (*i)->x()==x() || (*i)->y()==y() ) )
+        {
+            powerup* item=static_cast<powerup*>(*i);
+            //if powerup is under chest
+            if (!item->is_pickable())
+                return;
+
+            switch(item->get_powerType())
+            {
+            case powerup::powerupType::NewBomb:
+                maxNumBombs++;
+                break;
+            case powerup::powerupType::Boots:
+                movingTime = (movingTime>15) ? movingTime*0.9 : movingTime;
+                break;
+            case powerup::powerupType::BiggerRange:
+                explosionRange++;
+                break;
+            case powerup::powerupType::PushBombs:
+                //bombPushInterv
+                break;
+            }
+            collide.removeOne(item);
+            delete item;
+            break;
         }
     }
 }
@@ -305,7 +337,8 @@ void player::explosion_hit()
     {
         //end of game for this player
         QObject::disconnect(&moveTimer, SIGNAL(timeout()), this, SLOT(onMoveTimeout()));
-        scene()->removeItem(this);
+        QObject::connect(this, SIGNAL(dead()), this, SLOT(onPlayerDead()), Qt::QueuedConnection);
+        emit dead();
     }
 }
 
@@ -331,4 +364,9 @@ void player::onImmortalTimeout()
     }
     else
         setOpacity(opacity()==1 ? 0.25 : 1.0);
+}
+
+void player::onPlayerDead()
+{
+    scene()->removeItem(this);
 }
