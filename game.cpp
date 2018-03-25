@@ -26,6 +26,7 @@ game::game(QWidget* parent, const playerData *playersData, int numPlayers)
 {
     //handle keybord events
     grabKeyboard();
+    scene=nullptr;
 
     setWindowTitle("Bomberman");
 
@@ -62,7 +63,8 @@ game::~game()
     obstacles.clear();
     bombs.clear();
 
-    scene->clear();
+    if (scene!=nullptr)
+        scene->clear();
 }
 
 void game::setup_graphics()
