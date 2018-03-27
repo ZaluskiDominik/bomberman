@@ -9,6 +9,7 @@
 #include <QList>
 #include "otherFunctions.h"
 #include "player.h"
+#include "chest.h"
 
 class game : public QDialog
 {

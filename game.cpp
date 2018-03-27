@@ -31,13 +31,14 @@ game::game(QWidget* parent, const playerData *playersData, int numPlayers)
     setWindowTitle("Bomberman");
 
     load_pixmaps();
+    chest::load_pixmaps();
 
     //load the map to memory
     if (!load_map())
     {
         //an error occured
         parentWidget()->show();
-        QMessageBox::warning(parentWidget(), "Error", "Could not open file field.txt", QMessageBox::Ok);
+        QMessageBox::warning(parentWidget(), "Error", "Could not open file map.txt", QMessageBox::Ok);
         deleteLater();
         return;
     }
@@ -62,6 +63,8 @@ game::~game()
     chests.clear();
     obstacles.clear();
     bombs.clear();
+
+    chest::free_pixmaps();
 
     if (scene!=nullptr)
         scene->clear();
@@ -151,7 +154,7 @@ void game::draw_fields(std::ifstream& file)
             }
             else if (field==Chest)
             {
-                chests.append(new QGraphicsPixmapItem(get_field_pixmap(Chest, fieldSize)));
+                chests.append(new chest);
                 chests.back()->setPos(j * fieldSize, i * fieldSize);
                 scene->addItem(chests.back());
             }
@@ -253,11 +256,16 @@ void game::create_flame_line(QPoint direction, const bomb& b)
             {
 
             }
-            else if (is_chest(*i))
+            else if (typeid(**i)==typeid(chest))
             {
-                //stop drawing flames, destroy chest
-                chests.removeOne(static_cast<QGraphicsPixmapItem*>(*i));
-                delete (*i);
+                //stop drawing flames, explode chest
+                chest* c=static_cast<chest*>(*i);
+                if (!c->inDestruction)
+                {
+                    chests.removeOne(c);
+                    c->inDestruction=true;
+                    c->explode();
+                }
                 newFlame->deleteLater();
                 return;
             }

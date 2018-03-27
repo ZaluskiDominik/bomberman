@@ -3,6 +3,7 @@
 # Project created by QtCreator 2017-11-15T16:47:58
 #
 #-------------------------------------------------
+CONFIG+=c++14
 
 QT       += core gui multimedia
 
@@ -33,7 +34,8 @@ SOURCES += \
     menu.cpp \
     otherFunctions.cpp \
     flame.cpp \
-    powerup.cpp
+    powerup.cpp \
+    chest.cpp
 
 HEADERS += \
     menubutton.h \
@@ -44,9 +46,11 @@ HEADERS += \
     menu.h \
     otherFunctions.h \
     flame.h \
-    powerup.h
+    powerup.h \
+    chest.h
 
 FORMS +=
 
 RESOURCES += \
-    resources.qrc
+    resources.qrc \
+    resources2.qrc
