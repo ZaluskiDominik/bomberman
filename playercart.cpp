@@ -133,7 +133,7 @@ void playerCart::set_color_box()
 //add colors to combo box
 void playerCart::add_colors()
 {
-    QString colors[4]={"white", "silver", "green", "yellow"};
+    QString colors[4]={"white", "blue", "green", "yellow"};
     int i, j;
 
     //loop through all colors

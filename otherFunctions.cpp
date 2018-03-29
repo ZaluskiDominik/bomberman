@@ -4,8 +4,8 @@ playerColor::color string_to_playerColor(QString str)
 {
     if (str=="white")
         return playerColor::color::White;
-    if (str=="silver")
-        return playerColor::color::Silver;
+    if (str=="blue")
+        return playerColor::color::Blue;
     if (str=="green")
         return playerColor::color::Green;
     return playerColor::color::Yellow;
@@ -16,7 +16,7 @@ playerColor::color string_to_playerColor(QString str)
 QPixmap color_player(playerColor::color color, QString imgPath)
 {
     QImage img(imgPath);
-    if (color==playerColor::Silver)
+    if (color==playerColor::Blue)
         color_player_helper(img, 32, 40, QColor(0, 76, 153));
     else if (color==playerColor::Green)
         color_player_helper(img, 32, 40, QColor(51, 255, 51));

@@ -13,6 +13,7 @@ int player::movingDist;
 player::player(const playerData& data, QGraphicsScene *scene)
     :numPixmaps(8)
 {
+    playerDead=false;
     scene->addItem(this);
     setZValue(2);
 
@@ -28,7 +29,7 @@ player::player(const playerData& data, QGraphicsScene *scene)
     bombsPlaced=0;
     explosionRange=1;
     //in the beginning of the game player can't push bombs
-    bombPushInterv=-1;
+    bombPushInterv=40;
 
     movingTime=40;
     moveStage=0;
@@ -83,7 +84,7 @@ void player::setup_player(QGraphicsScene* scene)
 {
     if (color==playerColor::White)
         setPos(fieldSize, fieldSize);         //top left
-    else if (color==playerColor::Silver)
+    else if (color==playerColor::Blue)
         setPos(scene->width() - (2*fieldSize), fieldSize);     //top right
     else if (color==playerColor::Green)
         setPos(fieldSize, scene->height() - (2*fieldSize));    //bottom left
@@ -152,7 +153,7 @@ void player::place_bomb()
 
     for (auto i=bombs.begin() ; i!=bombs.end() ; i++)
     {
-        if ((*i)->x()==bombPos.x() && (*i)->y()==bombPos.y())
+        if (std::abs(bombPos.x() - (*i)->x()) < fieldSize && std::abs(bombPos.y() - (*i)->y()) < fieldSize)
         {
             //bomb on that position already exists, so don't create another one
             return;
@@ -161,8 +162,8 @@ void player::place_bomb()
 
     //create a new bomb
     bombsPlaced++;
-    bomb* newBomb=new bomb(bombPos, explosionRange, this, scene());
-    QObject::connect(newBomb, SIGNAL(bombExploded()), this, SLOT(onBombExploded()));
+    bombs.append( new bomb(bombPos, explosionRange, this, scene()) );
+    QObject::connect(bombs.back(), SIGNAL(bombExploded()), this, SLOT(onBombExploded()));
 }
 
 void player::onMoveTimeout()
@@ -182,12 +183,14 @@ void player::onMoveTimeout()
 
         //get the list of items colliding with the player
         collide=collidingItems(Qt::IntersectsItemBoundingRect);
-        //remove players from colliding items list
+        //players don't collide with each other
         remove_colliding_players(collide);
 
         handle_flames(collide);
         handle_powerups(collide);
         handle_bombs(collide);
+
+        try_bypassing_obstacle(collide, currDir[dirIter], originPoint);
     }
     while (--dirIter >= 0 && collision(collide));
     dirIter++;
@@ -224,25 +227,21 @@ void player::handle_bombs(QList<QGraphicsItem *> &collide)
         if (typeid(*collide[i])==typeid(bomb))
         {
             bomb* collideBomb=static_cast<bomb*>(collide[i]);
-
-            //if playersInside list is not empty
-            if (!collideBomb->playersInside.empty())
+            //if player is on playersInside list then this bomb isn't collideable for him
+            if (collideBomb->playersInside.contains(this))
+                collide.removeOne(collide[i--]);
+            else if (bombPushInterv!=-1)
             {
-                //bomb isn't pushable
-                QList<QGraphicsItem*>::iterator it;
-                //check if this player is in playersInside list
-                for (it=collideBomb->playersInside.begin() ; it!=collideBomb->playersInside.end() && this!=*it ; it++);
+                //bomb can be pushed by this player
+                if (collideBomb->x() > x())
+                    collideBomb->push_bomb(bombPushInterv, QPoint(bomb::movingDistance, 0));
+                else if (collideBomb->x() < x())
+                    collideBomb->push_bomb(bombPushInterv, QPoint(-bomb::movingDistance, 0));
+                else if (collideBomb->y() > y())
+                    collideBomb->push_bomb(bombPushInterv, QPoint(0, bomb::movingDistance));
+                else if (collideBomb->y() < y())
+                    collideBomb->push_bomb(bombPushInterv, QPoint(0, -bomb::movingDistance));
 
-                if (it!=collideBomb->playersInside.end())
-                {
-                    //this player is inside bomb's rect, so this bomb shouldn't be collideable for this player
-                    //remove that bomb from collide list
-                    collide.removeOne(collide[i--]);
-                }
-            }
-            else
-            {
-                //bomb can be pushed by players
             }
         }
     }
@@ -267,10 +266,11 @@ void player::handle_powerups(QList<QGraphicsItem *> &collide)
         if (typeid(**i)==typeid(powerup) && ( (*i)->x()==x() || (*i)->y()==y() ) )
         {
             powerup* item=static_cast<powerup*>(*i);
-            //if powerup is under chest
+            //if the powerup is under chest
             if (!item->is_pickable())
                 return;
 
+            //apply the powerup to this player
             switch(item->get_powerType())
             {
             case powerup::powerupType::NewBomb:
@@ -308,10 +308,48 @@ void player::left_bomb_rect()
     }
 }
 
+void player::try_bypassing_obstacle(QList<QGraphicsItem *> &collide, const int dir, const QPoint origin)
+{
+    if (currDir.size()==1 && collide.size()==1 && typeid(*collide.first())==typeid(obstacle))
+    {
+        const QGraphicsItem& ob=*collide.first();
+        if (dir==keys.down || dir==keys.up)
+        {
+            if (x() - ob.x() >= fieldSize/2)
+            {
+                setPos(origin);
+                setX(x() + movingDist);
+                collide.clear();
+            }
+            else if (x() - ob.x() <= -fieldSize/2)
+            {
+                setPos(origin);
+                setX(x() - movingDist);
+                collide.clear();
+            }
+        }
+        else
+        {
+            if (y() - ob.y() >= fieldSize/2)
+            {
+                setPos(origin);
+                setY(y() + movingDist);
+                collide.clear();
+            }
+            else if (y() - ob.y() <= -fieldSize/2)
+            {
+                setPos(origin);
+                setY(y() - movingDist);
+                collide.clear();
+            }
+        }
+    }
+}
+
 bool player::collision(QList<QGraphicsItem *>& collide)
 {
-    //if player entered brick frame or collide list isn't empty
-    if ( (y()<fieldSize) || (y()>scene()->width() - (2*fieldSize)) || (x()<fieldSize) || (x()>scene()->height() - (2*fieldSize)) || (collide.size()) )
+    //if collide list isn't empty
+    if (collide.size())
         return true;
 
     //there wasn't any collision
@@ -333,9 +371,10 @@ void player::explosion_hit()
         setOpacity(0.25);
         immortalTimer.start(immortalityTime/10);
     }
-    else
+    else if (!playerDead)
     {
         //end of game for this player
+        playerDead=true;
         QObject::disconnect(&moveTimer, SIGNAL(timeout()), this, SLOT(onMoveTimeout()));
         QObject::connect(this, SIGNAL(dead()), this, SLOT(onPlayerDead()), Qt::QueuedConnection);
         emit dead();
@@ -349,6 +388,7 @@ void player::onBombExploded()
     if (bombSender->whoseBomb==this)
         bombsPlaced--;
 
+    //game class will draw flames
     emit drawFlamesRequest(bombSender);
 }
 

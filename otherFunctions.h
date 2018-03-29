@@ -8,7 +8,7 @@
 //enum with available player's colors
 namespace playerColor
 {
-    enum color{White=0, Silver, Green, Yellow};
+    enum color{White=0, Blue, Green, Yellow};
 }
 
 //functions

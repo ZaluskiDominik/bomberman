@@ -16,7 +16,7 @@ QList<QGraphicsPixmapItem*> obstacles;
 QList<QGraphicsPixmapItem*> chests;
 
 //list with players in game
-QList<player*> gamePlayers;
+QList<QGraphicsItem*> gamePlayers;
 
 //lists with bombs placed currently at the scene
 QList<bomb*> bombs;
@@ -50,13 +50,14 @@ game::game(QWidget* parent, const playerData *playersData, int numPlayers)
 
     //draw players
     spawn_players(playersData, numPlayers);
+    bomb::movingDistance=fieldSize/10;
 }
 
 game::~game()
 {
     //delete players
     for (auto i=gamePlayers.begin() ; i!=gamePlayers.end() ; i++)
-        (*i)->deleteLater();
+        static_cast<player*>(*i)->deleteLater();
     gamePlayers.clear();
 
     //clear all lists
@@ -148,7 +149,7 @@ void game::draw_fields(std::ifstream& file)
             file>>field;
             if (field==Obstacle)
             {
-                obstacles.append(new QGraphicsPixmapItem(get_field_pixmap(Obstacle, fieldSize)));
+                obstacles.append(new obstacle(get_field_pixmap(Obstacle, fieldSize)));
                 obstacles.back()->setPos(j * fieldSize, i * fieldSize);
                 scene->addItem(obstacles.back());
             }
@@ -196,6 +197,7 @@ void game::create_powerups()
             i--;
         else
         {
+            chestTaken.append(randChest);
             powerup* item=new powerup;
             if (i % powerup::numDiffPowers==0)
                 item->set_powerType(powerup::powerupType::NewBomb);
@@ -215,8 +217,9 @@ void game::spawn_players(const playerData* data, int numPlayers)
     player::movingDist=fieldSize/10;
     for (int i=0 ; i<numPlayers ; i++)
     {
-        gamePlayers.append(new player(data[i], scene));
-        QObject::connect(gamePlayers[i], SIGNAL(drawFlamesRequest(bomb*)), this, SLOT(onDrawFlameRequest(bomb*)));
+        player* newPlayer=new player(data[i], scene);
+        gamePlayers.append(newPlayer);
+        QObject::connect(newPlayer, SIGNAL(drawFlamesRequest(bomb*)), this, SLOT(onDrawFlameRequest(bomb*)));
     }
 }
 
@@ -224,6 +227,7 @@ void game::create_flame_line(QPoint direction, const bomb& b)
 {
     QPoint flamePos(b.x(), b.y());
     int numFlames=b.range;
+
     if (direction.x()==fieldSize)
     {
         //middle flame will be created
@@ -252,9 +256,9 @@ void game::create_flame_line(QPoint direction, const bomb& b)
                 newFlame->deleteLater();
                 return;
             }
-            else if (typeid(**i)==typeid(bomb))
+            else if (typeid(**i)==typeid(bomb) && (*i)!=(&b))
             {
-
+                static_cast<bomb*>(*i)->instant_explode();
             }
             else if (typeid(**i)==typeid(chest))
             {
@@ -306,7 +310,7 @@ void game::keyPressEvent(QKeyEvent *e)
 
     //let each player handle pressing keys
     for (int i=0 ; i<gamePlayers.size() ; i++)
-        gamePlayers[i]->key_pressed(e->key());
+        static_cast<player*>(gamePlayers[i])->key_pressed(e->key());
 }
 
 void game::keyReleaseEvent(QKeyEvent *e)
@@ -316,7 +320,7 @@ void game::keyReleaseEvent(QKeyEvent *e)
 
     //let each player handle releasing keys
     for (int i=0 ; i<gamePlayers.size() ; i++)
-        gamePlayers[i]->key_released(e->key());
+        static_cast<player*>(gamePlayers[i])->key_released(e->key());
 }
 
 void game::onDrawFlameRequest(bomb *b)
@@ -328,5 +332,6 @@ void game::onDrawFlameRequest(bomb *b)
     create_flame_line(QPoint(0, fieldSize), *b);
 
     //delete the bomb
+    bombs.removeOne(b);
     b->deleteLater();
 }

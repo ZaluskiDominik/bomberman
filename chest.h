@@ -5,6 +5,11 @@
 #include <QTimer>
 #include <memory>
 
+struct obstacle : public QGraphicsPixmapItem
+{
+    obstacle(const QPixmap& p) :QGraphicsPixmapItem(p) {}
+};
+
 class chest : public QObject, public QGraphicsPixmapItem
 {
     friend class game;
@@ -27,11 +32,6 @@ private:
 
 private slots:
     void onExplodeTimeout();
-
-};
-
-class obstacle : public QGraphicsPixmapItem
-{
 
 };
 

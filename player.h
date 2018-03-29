@@ -9,6 +9,7 @@
 #include "otherFunctions.h"
 #include "bomb.h"
 #include "powerup.h"
+#include "chest.h"
 
 //class representing a player in the game
 
@@ -29,7 +30,7 @@ private:
     int maxNumBombs;
     int explosionRange;
 
-    //after explosion hit player is immortal during few moments
+    //after explosion hit player is immortal few moments
     bool immortal;
     int immortalTimeCounter;
     static const int immortalityTime=3000;
@@ -63,6 +64,8 @@ private:
     //which pixmap should be applied as current player's image
     int moveStage;
 
+    bool playerDead;
+
     //**********************************************************************
 
     //add new direction if it's one of this player's keys
@@ -93,18 +96,19 @@ private:
     //remove colliding players or flame from collide list
     void remove_colliding_players(QList<QGraphicsItem*>& collide);
 
-    //handle pushing bombs, leaving bomb's rect
     void handle_bombs(QList<QGraphicsItem*>& collide);
 
     void handle_flames(QList<QGraphicsItem*>& collide);
 
     void handle_powerups(QList<QGraphicsItem*>& collide);
 
+    //check for collision with obstacles, wooden chests, bricks or bombs
+    bool collision(QList<QGraphicsItem*>& collide);
+
     //check if player left bomb's rect
     void left_bomb_rect();
 
-    //check for collision with obstacles, wooden chests, bricks or bombs
-    bool collision(QList<QGraphicsItem*>& collide);
+    void try_bypassing_obstacle(QList<QGraphicsItem*>& collide, const int dir, const QPoint origin);
 
 private slots:
     void onMoveTimeout();

@@ -1,35 +1,32 @@
 #include "bomb.h"
 #include <QList>
 #include <QGraphicsScene>
+#include "flame.h"
+#include "powerup.h"
 
 extern int fieldSize;
 
-extern QList<bomb*> bombs;
+extern QList<QGraphicsItem*> gamePlayers;
+
+int bomb::movingDistance;
 
 bomb::bomb(QPoint pos, const int explosionRange, const QGraphicsItem * const owner, QGraphicsScene* scene)
     :whoseBomb(owner), range(explosionRange)
 {
-    //add this bomb to list
-    bombs.append(this);
-    //add the bomb to the scene
+    aboutToExplode=bombPushed=exploded=false;
+
+    //set the bomb's position on the scene
     scene->addItem(this);
-
     setPos(pos);
-
-    explodeStage=0;
-    set_bomb_pixmap();
+    setPixmap(QPixmap(":/images/img/bomb/bomb.png").scaled(fieldSize, fieldSize));
 
     mark_players_inside();
 
-    //start counting time
-    explodeTimer.start(timeToExplode/numBombPixmaps);
-    QObject::connect(&explodeTimer, SIGNAL(timeout()), this, SLOT(advanceExplode()));
-}
+    QObject::connect(&explodeTimer, SIGNAL(timeout()), this, SLOT(onExplodeTimeout()));
+    QObject::connect(&pushTimer, SIGNAL(timeout()), this, SLOT(onPushTimeout()));
 
-bomb::~bomb()
-{
-    //remove this bomb from list
-    bombs.removeOne(this);
+    //start counting time to explode
+    explodeTimer.start(timeToExplode);
 }
 
 void bomb::mark_players_inside()
@@ -37,9 +34,13 @@ void bomb::mark_players_inside()
     playersInside=collidingItems(Qt::IntersectsItemBoundingRect);
 }
 
-void bomb::set_bomb_pixmap()
+void bomb::explode()
 {
-    setPixmap(QPixmap(":/images/img/bomb/bomb.png").scaled(fieldSize, fieldSize));
+    if (!exploded)
+    {
+        exploded=true;
+        emit bombExploded();
+    }
 }
 
 QPoint bomb::calculate_bomb_pos(QPoint pos)
@@ -63,21 +64,65 @@ QPoint bomb::calculate_bomb_pos(QPoint pos)
     return resultPos;
 }
 
-void bomb::explode()
+void bomb::push_bomb(int moveTime, QPoint direction)
 {
-    explodeTimer.stop();
-    emit bombExploded();
+    //if the bomb isn't moving
+    if (!bombPushed)
+    {
+        bombPushed=true;
+        moveDir=direction;
+        pushTimer.start(moveTime);
+
+        //place all players in playersInside list so that the bomb won't collide with them
+        playersInside=gamePlayers;
+    }
 }
 
-void bomb::advanceExplode()
+void bomb::instant_explode()
 {
-    explodeStage++;
-    if (explodeStage==numBombPixmaps)
+    explodeTimer.stop();
+    pushTimer.stop();
+    explode();
+}
+
+void bomb::onExplodeTimeout()
+{
+    explodeTimer.stop();
+    aboutToExplode=true;
+    if (!bombPushed)
+        explode();
+}
+
+void bomb::onPushTimeout()
+{    
+    //move the bomb
+    setPos(pos() + moveDir);
+
+    auto collide=collidingItems(Qt::IntersectsItemBoundingRect);
+    //remove all players and powerups from collide list
+    for (int i=0 ; i<collide.size() ; i++)
+        if (gamePlayers.contains(collide[i]) || typeid(*collide[i])==typeid(powerup))
+            collide.removeOne(collide[i--]);
+
+    //if the bomb collide with an object then stop moving
+    if (!collide.empty())
     {
-        //explosion
+        pushTimer.stop();
+        setPos(pos() - moveDir);
+        bombPushed=false;
+
+        playersInside.clear();
+        mark_players_inside();
+
+        //flame collision
+        if (typeid(*collide.first())==typeid(flame))
+            explode();
+    }
+
+    //check if it's time for explode
+    if (aboutToExplode && int(y())%fieldSize==0 && int(x())%fieldSize==0)
+    {
+        pushTimer.stop();
         explode();
     }
-    else
-        //change bomb's pixmap on next
-        set_bomb_pixmap();
 }
