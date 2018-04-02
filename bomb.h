@@ -4,6 +4,7 @@
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QTimer>
+#include <QMediaPlayer>
 
 class bomb : public QObject, public QGraphicsPixmapItem
 {
@@ -31,7 +32,7 @@ public:
 
 private:
     //time in miliseconds till bomb explode
-    static const int timeToExplode=2800;
+    static const int timeToExplode=3000;
 
     //range of flames after explosion
     const int range;
@@ -48,6 +49,8 @@ private:
     bool aboutToExplode;
     bool exploded;
 
+    QMediaPlayer explosionPlayer;
+
     //add players to playerInside list if they are colliding with the bomb during its creating
     inline void mark_players_inside();
 
@@ -56,6 +59,8 @@ private:
 private slots:
     void onExplodeTimeout();
     void onPushTimeout();
+
+    void onMusicStateChanged(QMediaPlayer::State state);
 
 signals:
     //detonate the bomb

@@ -38,7 +38,7 @@ void chest::explode()
     scene()->addItem(prevChest);
 
     setPixmap(explodePixmaps[explodeStage]);
-    timer.start(50);
+    timer.start(40);
 }
 
 void chest::onExplodeTimeout()

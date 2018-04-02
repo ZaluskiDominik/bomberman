@@ -205,6 +205,8 @@ void game::create_powerups()
                 item->set_powerType(powerup::powerupType::Boots);
             else if (i % powerup::numDiffPowers==2)
                 item->set_powerType(powerup::powerupType::BiggerRange);
+            else if (i % powerup::numDiffPowers==3)
+                item->set_powerType(powerup::powerupType::PushBombs);
 
             item->setPos(chests[randChest]->pos());
             scene->addItem(item);
@@ -256,7 +258,7 @@ void game::create_flame_line(QPoint direction, const bomb& b)
                 newFlame->deleteLater();
                 return;
             }
-            else if (typeid(**i)==typeid(bomb) && (*i)!=(&b))
+            else if (typeid(**i)==typeid(bomb))
             {
                 static_cast<bomb*>(*i)->instant_explode();
             }
@@ -325,13 +327,16 @@ void game::keyReleaseEvent(QKeyEvent *e)
 
 void game::onDrawFlameRequest(bomb *b)
 {
+    //play sound of explosion
+    b->explosionPlayer.play();
+
     //create flames
     create_flame_line(QPoint(-fieldSize, 0), *b);
     create_flame_line(QPoint(fieldSize, 0), *b);
     create_flame_line(QPoint(0, -fieldSize), *b);
     create_flame_line(QPoint(0, fieldSize), *b);
 
-    //delete the bomb
+    //remove the bomb from the scene
     bombs.removeOne(b);
-    b->deleteLater();
+    scene->removeItem(b);
 }

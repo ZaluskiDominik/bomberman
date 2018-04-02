@@ -10,7 +10,7 @@ public:
     enum powerupType{NewBomb=0, BiggerRange, PushBombs, Boots};
 
     //number of differents powerups
-    static const int numDiffPowers=3;
+    static const int numDiffPowers=4;
 
     powerupType get_powerType()
     {

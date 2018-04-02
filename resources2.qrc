@@ -2,4 +2,7 @@
     <qresource prefix="/img">
         <file>img/chest_explosion.png</file>
     </qresource>
+    <qresource prefix="/sounds">
+        <file>sounds/explode.mp3</file>
+    </qresource>
 </RCC>

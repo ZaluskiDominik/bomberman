@@ -24,6 +24,9 @@ bomb::bomb(QPoint pos, const int explosionRange, const QGraphicsItem * const own
 
     QObject::connect(&explodeTimer, SIGNAL(timeout()), this, SLOT(onExplodeTimeout()));
     QObject::connect(&pushTimer, SIGNAL(timeout()), this, SLOT(onPushTimeout()));
+    QObject::connect(&explosionPlayer, SIGNAL(stateChanged(QMediaPlayer::State)), this, SLOT(onMusicStateChanged(QMediaPlayer::State)));
+
+    explosionPlayer.setMedia(QMediaContent(QUrl("qrc:/sounds/sounds/explode.mp3")));
 
     //start counting time to explode
     explodeTimer.start(timeToExplode);
@@ -125,4 +128,11 @@ void bomb::onPushTimeout()
         pushTimer.stop();
         explode();
     }
+}
+
+void bomb::onMusicStateChanged(QMediaPlayer::State state)
+{
+    //if explosion sound has ended then delete the bomb
+    if (state==QMediaPlayer::State::StoppedState)
+        deleteLater();
 }

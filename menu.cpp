@@ -14,6 +14,7 @@ menu::menu(QWidget *parent) :
     //set the window's title and the window's resolution
     setWindowTitle("Bomberman");
     setMinimumSize(600, 700);
+    setMaximumSize(900, 1000);
 
     //display main menu
     create_main_manu();
