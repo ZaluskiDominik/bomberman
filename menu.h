@@ -2,9 +2,7 @@
 #define DIALOG_H
 
 #include <QDialog>
-#include <QFrame>
 #include <QMediaPlayer>
-#include <QPushButton>
 #include "menubutton.h"
 #include "playercart.h"
 #include "game.h"
@@ -31,11 +29,8 @@ private:
     //menu buttons(play, settings, quit)
     menuButton* menuButtons[3];
 
-    //background music player
-    QMediaPlayer menuMusic;
-
-    //button, which clicked, shows slider for changing the level of music's volume
-    QPushButton* volumeButton;
+    //title "bomberman"
+    QLabel* titleLabel;
 
     //keep track in which menu user is currently in
     QString currentLocation;
@@ -49,19 +44,20 @@ private:
     //************************************************************
 
     //create main menu with buttons
-    void create_main_manu();
-
-    //draw main menu
-    void draw_main_menu(QPainter &p);
-
-    //draw menu buttons
-    void draw_menuButtons();
-
-    //create music's volume button
-    void setup_volumeButton();
+    void create_main_menu();
 
     //clear main menu's window
     void erase_main_menu();
+
+    void create_title_label();
+
+    void draw_title_label();
+
+    //draw main menu's buttons
+    void draw_menuButtons();
+
+    //draw all main menu's widgets
+    void draw_main_menu(QPainter &p);
 
     //draw lobby with slots(carts) for players to choose their names and colors
     void draw_lobby(QPainter &p);
@@ -81,9 +77,6 @@ private slots:
 
     //exit from the app
     void onExitClicked();
-
-    //activated while advancing in background music
-    void onPosChanged();
 
     //start game
     void onStartGameClicked();

@@ -2,6 +2,7 @@
 #include <QPainter>
 #include <QKeyEvent>
 #include <QCoreApplication>
+#include <QGraphicsDropShadowEffect>
 
 int fieldSize;
 
@@ -17,32 +18,17 @@ menu::menu(QWidget *parent) :
     setMaximumSize(900, 1000);
 
     //display main menu
-    create_main_manu();
-
-    //set background music's path
-    menuMusic.setMedia(QMediaContent(QUrl("qrc:/sounds/sounds/menu_music.wav")));
-
-    //connect slot keeping track of music players's position
-    connect (&menuMusic, SIGNAL(positionChanged(qint64)), this, SLOT(onPosChanged()));
-    menuMusic.play();
+    create_main_menu();
 
     fieldSize=60;
 }
 
-void menu::erase_main_menu()
-{
-    //delete menu buttons
-    for (int i=0 ; i<numMenu ; i++)
-        menuButtons[i]->deleteLater();
-
-    //delete menu's volume button
-    volumeButton->deleteLater();
-}
-
-void menu::create_main_manu()
+void menu::create_main_menu()
 {
     //change current location on mainmenu
     currentLocation="mainmenu";
+
+    create_title_label();
 
     //create menu buttons
     QString text[numMenu]={ "Play", "Settings", "Exit" };
@@ -51,8 +37,6 @@ void menu::create_main_manu()
         menuButtons[i]=new menuButton(this, text[i]);
         menuButtons[i]->show();
     }
-
-    setup_volumeButton();
 
     //connect slots which will react on clicking menu buttons
     connect (menuButtons[0], SIGNAL(clicked(bool)), this, SLOT(onPlayClicked()));
@@ -63,53 +47,63 @@ void menu::create_main_manu()
     update();
 }
 
-void menu::setup_volumeButton()
+void menu::erase_main_menu()
 {
-    //create volume button
-    volumeButton=new QPushButton(this);
-    volumeButton->setGeometry(20, 20, 50, 50);
+    //delete menu buttons
+    for (int i=0 ; i<numMenu ; i++)
+        menuButtons[i]->deleteLater();
 
-    //set the button's icon
-    volumeButton->setIcon(QIcon(":/images/img/volume.png"));
-    volumeButton->setIconSize(QSize(50, 50));
-    //it will look as flat
-    volumeButton->setFlat(true);
+    titleLabel->deleteLater();
 }
 
-//*************************** PAINT EVENT ***************************
-
-void menu::paintEvent(QPaintEvent *)
+void menu::create_title_label()
 {
-    QPainter p(this);
-    if (currentLocation=="mainmenu")    //draw main menu
-        draw_main_menu(p);
-    else if (currentLocation=="lobby")  //draw lobby menu
-        draw_lobby(p);
+    titleLabel=new QLabel("Bomberman", this);
+    titleLabel->show();
+    titleLabel->setAlignment(Qt::AlignCenter);
+    titleLabel->setStyleSheet("color: #00FF00;");
+    //set font
+    QFont f;
+    f.setBold(true);
+    f.setFamily("Ravie");
+    f.setLetterSpacing(QFont::AbsoluteSpacing, 6);
+    titleLabel->setFont(f);
+    //apply drop shadow effect
+    QGraphicsDropShadowEffect* effect=new QGraphicsDropShadowEffect(titleLabel);
+    effect->setColor(QColor("#BBBBBB"));
+    effect->setBlurRadius(0);
+    effect->setOffset(6, 6);
+    titleLabel->setGraphicsEffect(effect);
+}
+
+void menu::draw_title_label()
+{
+    int h=height()*0.25;
+    titleLabel->setGeometry(0, 0.07*h, width(), h);
+    //change font size
+    QFont f=titleLabel->font();
+    f.setPixelSize(titleLabel->width()*0.11);
+    titleLabel->setFont(f);
 }
 
 void menu::draw_menuButtons()
 {
     //calculate a new size for menu buttons
     int spaceBetween=0.025 * height();  //space between the buttons
-    int h=( height()*0.6 - ((numMenu - 1) * spaceBetween) )/numMenu, w=width()/2;
+    int h=( height()*0.6 - ((numMenu - 1) * spaceBetween) )/numMenu, w=width()*0.65;
     for (int i=0 ; i<numMenu ; i++)
-        menuButtons[i]->setGeometry(w/2, height()*0.2 + (i * (h + spaceBetween)), w, h);
+        menuButtons[i]->setGeometry((width() - w)/2, height()*0.3 + (i * (h + spaceBetween)), w, h);
 }
 
 void menu::draw_main_menu(QPainter& p)
 {
     //draw the background
-    QImage background(":/images/img/menuBackground.png");
-    background=background.scaled(width(), height());
-    p.drawImage(0, 0, background);
-
-    //set title "bomberman"
-    p.setFont(QFont("Ravie", 20));
-    p.setPen(Qt::red);
-    p.drawText(width()/2 - 150, 40, 300, 100, Qt::AlignCenter, "Bomberman");
+    p.fillRect(0, 0, width(), height(), QBrush(QColor(0, 0, 200)));
 
     //draw menu buttons
     draw_menuButtons();
+
+    draw_title_label();
 }
 
 void menu::draw_lobby(QPainter& p)
@@ -128,17 +122,23 @@ void menu::draw_lobby(QPainter& p)
         players[i]->setGeometry((i%2) * (cartW+5) + 10, (i/2) * (cartH+5) + 10, cartW, cartH);
 }
 
-//******************************************************************
-
-//background music
-void menu::onPosChanged()
+void menu::erase_lobby()
 {
-    //loop background music
-    if (menuMusic.position()>=45000)
-    {
-        menuMusic.setPosition(0);
-        menuMusic.play();
-    }
+    //delete all player's slots carts
+    for (int i=0 ; i<playerCart::playersCount() ; i++)
+        players[i]->deleteLater();
+
+    //delete startGame button
+    startButton->deleteLater();
+}
+
+void menu::paintEvent(QPaintEvent *)
+{
+    QPainter p(this);
+    if (currentLocation=="mainmenu")    //draw main menu
+        draw_main_menu(p);
+    else if (currentLocation=="lobby")  //draw lobby menu
+        draw_lobby(p);
 }
 
 //MAIN MENU BUTTONS SLOTS
@@ -175,9 +175,7 @@ void menu::onExitClicked()
     QCoreApplication::exit(0);
 }
 
-//KEYBOARD
-//***********************************************************
-
+//keyboard handler
 void menu::keyPressEvent(QKeyEvent *e)
 {
     //ESC key for returning to main menu
@@ -187,21 +185,11 @@ void menu::keyPressEvent(QKeyEvent *e)
             erase_lobby();
 
         //return to main menu
-        create_main_manu();
+        create_main_menu();
     }
 }
 
-void menu::erase_lobby()
-{
-    //delete all player's slots carts
-    for (int i=0 ; i<playerCart::playersCount() ; i++)
-        players[i]->deleteLater();
-
-    //delete startGame button
-    startButton->deleteLater();
-}
-
-//TO DO after adding setting menu
+//TO DO after adding settings menu
 void menu::export_playersData(playerData* playersData)
 {
     for (int i=0 ; i<playerCart::playersAddedCount() ; i++)
@@ -221,8 +209,6 @@ void menu::export_playersData(playerData* playersData)
     }
 }
 
-//***********************************************************
-
 //begin game
 void menu::onStartGameClicked()
 {
@@ -232,9 +218,6 @@ void menu::onStartGameClicked()
 
     //hide main menu's window
     hide();
-
-    //stop playing music
-    menuMusic.stop();
 
     //prepare structure for exporting players' data
     playerData playersData[playerCart::playersAddedCount()];
@@ -253,8 +236,7 @@ void menu::onGameEnded()
     //reappear main menu's window
     gameWnd->deleteLater();
     erase_lobby();
-    create_main_manu();
-    menuMusic.play();
+    create_main_menu();
     show();
 
     //take over handling the keyboard events

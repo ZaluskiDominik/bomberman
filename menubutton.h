@@ -12,6 +12,8 @@ class menuButton : public QAbstractButton
 public:
     menuButton(QWidget *parent, QString text);
 
+    void set_text_color(const QColor& color);
+
 protected:
     void enterEvent(QEvent *);
     void leaveEvent(QEvent *);
@@ -20,12 +22,16 @@ protected:
 private:
     //button's title
     const QString str;
+    QColor textColor;
+    QFont font;
 
     //whether mouse cursor is over the button
     bool in;
 
     //music player
     QMediaPlayer clickPlayer;
+
+    void setup_font();
 
 };
 
