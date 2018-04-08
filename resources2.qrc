@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/img">
         <file>img/chest_explosion.png</file>
+        <file>img/background.png</file>
     </qresource>
     <qresource prefix="/sounds">
         <file>sounds/explode.mp3</file>

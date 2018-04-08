@@ -2,6 +2,8 @@
 #include <QPainter>
 #include <QGraphicsBlurEffect>
 
+extern int volume;
+
 menuButton::menuButton(QWidget *parent, QString text)
     :QAbstractButton(parent), str(text)
 {
@@ -11,6 +13,7 @@ menuButton::menuButton(QWidget *parent, QString text)
     in=false;
     //set path of click sound
     clickPlayer.setMedia(QMediaContent(QUrl("qrc:/sounds/sounds/button_click.mp3")));
+    clickPlayer.setVolume(volume);
 
     setup_font();
 }

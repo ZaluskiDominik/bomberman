@@ -3,6 +3,8 @@
 
 #include <QDialog>
 #include <QMediaPlayer>
+#include <QGroupBox>
+#include <QFormLayout>
 #include "menubutton.h"
 #include "playercart.h"
 #include "game.h"
@@ -41,7 +43,13 @@ private:
     //game's window with the graphics scene
     game* gameWnd;
 
+    QGroupBox* settingsBox;
+    menuButton* returnButton;
+    menuButton* keySettingsButton;
+
     //************************************************************
+
+    void draw_background(QPainter& p);
 
     //create main menu with buttons
     void create_main_menu();
@@ -68,6 +76,16 @@ private:
     //export player data obtained in playerCart class to game class
     void export_playersData(playerData *playersData);
 
+    //settings menu
+    //*******************************************************************
+    void create_settings_menu();
+
+    void erase_settings_menu();
+
+    void create_settings_groupBox();
+
+    void draw_settings_menu(QPainter& p);
+
 private slots:
     //go to lobby
     void onPlayClicked();
@@ -83,6 +101,14 @@ private slots:
 
     //game has come to the end
     void onGameEnded();
+
+    //user changed field size
+    void onSpinBoxValueChanged(int value);
+
+    //user changed sound's volume
+    void onSliderValueChanged(int value);
+
+    void onReturnFromSettings();
 
 };
 

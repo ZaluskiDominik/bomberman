@@ -4,6 +4,7 @@
 #include "flame.h"
 #include "powerup.h"
 
+extern int volume;
 extern int fieldSize;
 
 extern QList<QGraphicsItem*> gamePlayers;
@@ -27,6 +28,7 @@ bomb::bomb(QPoint pos, const int explosionRange, const QGraphicsItem * const own
     QObject::connect(&explosionPlayer, SIGNAL(stateChanged(QMediaPlayer::State)), this, SLOT(onMusicStateChanged(QMediaPlayer::State)));
 
     explosionPlayer.setMedia(QMediaContent(QUrl("qrc:/sounds/sounds/explode.mp3")));
+    explosionPlayer.setVolume(volume);
 
     //start counting time to explode
     explodeTimer.start(timeToExplode);

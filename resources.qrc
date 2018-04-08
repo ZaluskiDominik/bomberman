@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/images">
-        <file>img/menuBackground.png</file>
         <file>img/add_player.png</file>
         <file>img/volume.png</file>
         <file>img/choosing_players.jpg</file>
