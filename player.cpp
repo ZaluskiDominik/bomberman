@@ -29,7 +29,7 @@ player::player(const playerData& data, QGraphicsScene *scene)
     bombsPlaced=0;
     explosionRange=1;
     //in the beginning of the game player can't push bombs
-    bombPushInterv=40;
+    bombMoveTime=-1;
 
     movingTime=40;
     moveStage=0;
@@ -230,17 +230,17 @@ void player::handle_bombs(QList<QGraphicsItem *> &collide)
             //if player is on playersInside list then this bomb isn't collideable for him
             if (collideBomb->playersInside.contains(this))
                 collide.removeOne(collide[i--]);
-            else if (bombPushInterv!=-1)
+            else if (bombMoveTime!=-1)
             {
                 //bomb can be pushed by this player
                 if (collideBomb->x() > x())
-                    collideBomb->push_bomb(bombPushInterv, QPoint(bomb::movingDistance, 0));
+                    collideBomb->push_bomb(bombMoveTime, QPoint(bomb::movingDistance, 0));
                 else if (collideBomb->x() < x())
-                    collideBomb->push_bomb(bombPushInterv, QPoint(-bomb::movingDistance, 0));
+                    collideBomb->push_bomb(bombMoveTime, QPoint(-bomb::movingDistance, 0));
                 else if (collideBomb->y() > y())
-                    collideBomb->push_bomb(bombPushInterv, QPoint(0, bomb::movingDistance));
+                    collideBomb->push_bomb(bombMoveTime, QPoint(0, bomb::movingDistance));
                 else if (collideBomb->y() < y())
-                    collideBomb->push_bomb(bombPushInterv, QPoint(0, -bomb::movingDistance));
+                    collideBomb->push_bomb(bombMoveTime, QPoint(0, -bomb::movingDistance));
 
             }
         }
@@ -263,32 +263,36 @@ void player::handle_powerups(QList<QGraphicsItem *> &collide)
 {
     for (auto i=collide.begin() ; i!=collide.end() ; i++)
     {
-        if (typeid(**i)==typeid(powerup) && ( (*i)->x()==x() || (*i)->y()==y() ) )
+        if (typeid(**i)==typeid(powerup))
         {
             powerup* item=static_cast<powerup*>(*i);
-            //if the powerup is under chest
-            if (!item->is_pickable())
-                return;
-
-            //apply the powerup to this player
-            switch(item->get_powerType())
+            //if the powerup isn't under a chest and it's in the same row or column with player
+            if (item->is_pickable() && (item->x()==x() || item->y()==y()) )
             {
-            case powerup::powerupType::NewBomb:
-                maxNumBombs++;
-                break;
-            case powerup::powerupType::Boots:
-                movingTime = (movingTime>15) ? movingTime*0.9 : movingTime;
-                break;
-            case powerup::powerupType::BiggerRange:
-                explosionRange++;
-                break;
-            case powerup::powerupType::PushBombs:
-                //bombPushInterv
-                break;
+                //apply the powerup to this player
+                switch(item->get_powerType())
+                {
+                case powerup::powerupType::NewBomb:
+                    maxNumBombs++;
+                    break;
+                case powerup::powerupType::Boots:
+                    movingTime = (movingTime>15) ? movingTime*0.9 : movingTime;
+                    break;
+                case powerup::powerupType::BiggerRange:
+                    explosionRange++;
+                    break;
+                case powerup::powerupType::PushBombs:
+                    if (bombMoveTime==-1)
+                        //enable pushing bombs
+                        bombMoveTime=40;
+                    else
+                        bombMoveTime=(bombMoveTime>20) ? bombMoveTime*0.9 : bombMoveTime;
+                    break;
+                }
+                delete item;
             }
             collide.removeOne(item);
-            delete item;
-            break;
+            return;
         }
     }
 }

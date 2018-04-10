@@ -20,12 +20,6 @@ playerColor::color string_to_playerColor(QString str);
 //convert white player's pixmap to other colors
 QPixmap color_player(playerColor::color color, QString imgPath);
 
-//recursive function needed to color_player function
-void color_player_helper(QImage& img, int x, int y, QColor color);
-
-//function needed to color_player function
-bool stop_coloring(const QColor& color, const QColor &aimedColor);
-
 //structures
 //***********************************************************
 

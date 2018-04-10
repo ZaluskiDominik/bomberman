@@ -1,6 +1,7 @@
 #include "menubutton.h"
 #include <QPainter>
 #include <QGraphicsBlurEffect>
+#include <QLinearGradient>
 
 extern int volume;
 
@@ -10,7 +11,7 @@ menuButton::menuButton(QWidget *parent, QString text)
     //set button's background as transparent
     setStyleSheet("background: transparent");
     textColor=Qt::black;
-    in=false;
+    in=paintBackground=false;
     //set path of click sound
     clickPlayer.setMedia(QMediaContent(QUrl("qrc:/sounds/sounds/button_click.mp3")));
     clickPlayer.setVolume(volume);
@@ -21,6 +22,17 @@ menuButton::menuButton(QWidget *parent, QString text)
 void menuButton::set_text_color(const QColor &color)
 {
     textColor=color;
+}
+
+void menuButton::set_background_color(const QColor &color)
+{
+    paintBackground=true;
+    backColor=color;
+}
+
+void menuButton::change_volume(int vol)
+{
+    clickPlayer.setVolume(vol);
 }
 
 void menuButton::enterEvent(QEvent *)
@@ -43,9 +55,11 @@ void menuButton::paintEvent(QPaintEvent *)
     QPainter p(this);
     if (in)
     {
-        //change color of the button
-        p.fillRect(QRect(0, 0, width(), height()), QBrush(QColor(255, 215, 0)));
+        //mouse hover over
+        p.fillRect(QRect(0, 0, width(), height()), create_gradient(QColor(255,165,0)));
     }
+    else if (paintBackground)
+        p.fillRect(QRect(0, 0, width(), height()), create_gradient(backColor));
 
     //draw button's frame
     QPen pen(Qt::green);
@@ -72,4 +86,12 @@ void menuButton::setup_font()
     QGraphicsBlurEffect* effect=new QGraphicsBlurEffect(this);
     effect->setBlurRadius(3);
     setGraphicsEffect(effect);
+}
+
+QLinearGradient menuButton::create_gradient(QColor color)
+{
+    QLinearGradient gradient(0, 0, width(), height());
+    gradient.setColorAt(0, color.lighter(130));
+    gradient.setColorAt(1, color.lighter(80));
+    return gradient;
 }

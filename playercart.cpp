@@ -1,5 +1,6 @@
 #include "playercart.h"
 #include <QPainter>
+#include <QGraphicsDropShadowEffect>
 #include "otherFunctions.h"
 
 //slots for players
@@ -11,26 +12,24 @@ playerCart::playerCart(QWidget *parent)
     :QWidget(parent)
 {
     playersCounter++;
-
-    //new slot cart is empty first(player can be added)
+    //new slot cart is created as empty cart(player can be added)
     playerAdded=false;
 
     //create frame around player's slot cart
-    set_frame();
-
+    create_frame();
     //create empty slot
-    set_emptySlot();
+    create_emptySlot();
 
     //connect slot which will react on clicking the button for adding player
-    connect (addButton, SIGNAL(clicked(bool)), this, SLOT(onAddPlayer()));
+    QObject::connect(addButton, SIGNAL(clicked(bool)), this, SLOT(onAddPlayer()));
 }
 
-void playerCart::set_frame()
+void playerCart::create_frame()
 {
     playerFrame=new QFrame(this);
     frameLayout=new QVBoxLayout;
 
-    //frame's look
+    //set frame's look
     playerFrame->setLayout(frameLayout);
     playerFrame->setLineWidth(3);
     playerFrame->setMidLineWidth(3);
@@ -38,24 +37,36 @@ void playerCart::set_frame()
     playerFrame->show();
 }
 
-void playerCart::set_emptySlot()
+void playerCart::create_emptySlot()
 {
-    //label with text: "empty slot"
-    QLabel* emptySlot=new QLabel;
-    QFont f;
-    f.setBold(true);
-    f.setPointSize(18);
-    emptySlot->setFont(f);
-    emptySlot->setText("Empty slot");
+    create_empty_label();
 
     //button for adding player
     addButton=new QPushButton("Add player");
     addButton->setIcon(QIcon(":/images/img/add_player.png"));
     addButton->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
-
-    //add to frame layout
-    frameLayout->addWidget(emptySlot, 0, Qt::AlignCenter);
     frameLayout->addWidget(addButton, 0, Qt::AlignCenter);
+}
+
+void playerCart::create_empty_label()
+{
+    //label with text: "empty slot"
+    QLabel* emptySlot=new QLabel;
+    QFont f;
+    f.setBold(true);
+    f.setPointSize(22);
+    emptySlot->setFont(f);
+    setStyleSheet("color: #991144");
+
+    //apply drop shadow effect
+    QGraphicsDropShadowEffect* effect=new QGraphicsDropShadowEffect(this);
+    effect->setOffset(5, 5);
+    effect->setBlurRadius(4);
+    effect->setColor(Qt::blue);
+    emptySlot->setGraphicsEffect(effect);
+
+    emptySlot->setText("Empty slot");
+    frameLayout->addWidget(emptySlot, 0, Qt::AlignCenter);
 }
 
 void playerCart::set_closeButton()
@@ -149,8 +160,13 @@ void playerCart::add_colors()
 void playerCart::paintEvent(QPaintEvent*)
 {
     QPainter p(this);
-    //silver background
-    p.fillRect(0, 0, width(), height(), QColor(211, 211, 211));
+    //draw background gradient
+    QLinearGradient grad(0, 0, 0, height());
+    grad.setColorAt(0.0, QColor(211, 211, 211));
+    grad.setColorAt(0.3, QColor("#AAAAAA"));
+    grad.setColorAt(0.7, QColor("#999999"));
+    grad.setColorAt(1.0, QColor("#777777"));
+    p.fillRect(0, 0, width(), height(), grad);
 
     //resize frame
     playerFrame->resize(width(), height());
@@ -166,7 +182,7 @@ void playerCart::onAddPlayer()
     playerFrame->deleteLater();
 
     //create new frame
-    set_frame();
+    create_frame();
 
     //add closeButton at top right corner
     set_closeButton();

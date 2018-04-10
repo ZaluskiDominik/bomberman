@@ -118,18 +118,41 @@ void menu::draw_main_menu(QPainter& p)
 //lobby
 //**********************************************************
 
+void menu::create_lobby()
+{
+    //create a first empty slot for player
+    players[0]=new playerCart(this);
+    players[0]->show();
+
+    //create start and return buttons
+    create_startButton();
+    create_returnButton();
+    returnButton->set_background_color(QColor("#99ff99"));
+
+    update();
+}
+
+void menu::create_startButton()
+{
+    startButton=new menuButton(this, "Start");
+    startButton->set_text_color(QColor("#ff0000"));
+    startButton->set_background_color(QColor("#ffdb4d"));
+    startButton->show();
+    QObject::connect(startButton, SIGNAL(clicked(bool)), this, SLOT(onStartGameClicked()));
+}
+
 void menu::draw_lobby(QPainter& p)
 {
     //draw lobby's background
-    QImage lobbyBackImg(":/images/img/choosing_players.jpg");
-    lobbyBackImg=lobbyBackImg.scaled(width(), height());
-    p.drawImage(0, 0, lobbyBackImg);
+    draw_background(p);
 
-    //resize the startGame button
-    startButton->setGeometry(width()/2 - 100, height() - 90, 200, 80);
+    //resize startGame and return buttons
+    const int w=width()/2*0.8, h=80;
+    returnButton->setGeometry((width()/2 - w)/2, height() - 90, w, h);
+    startButton->setGeometry(width()/4*3 - (w/2), height() - 90, w, h);
 
     //resize slots for players
-    int cartH=(height() - 25 - 90)/2, cartW=(width() - 25)/2;
+    const int cartH=(height() - 25 - 90)/2, cartW=(width() - 25)/2;
     for (int i=0 ; i<playerCart::playersCount() ; i++)
         players[i]->setGeometry((i%2) * (cartW+5) + 10, (i/2) * (cartH+5) + 10, cartW, cartH);
 }
@@ -140,71 +163,8 @@ void menu::erase_lobby()
     for (int i=0 ; i<playerCart::playersCount() ; i++)
         players[i]->deleteLater();
 
-    //delete startGame button
     startButton->deleteLater();
-}
-
-//**********************************************************
-
-void menu::paintEvent(QPaintEvent *)
-{
-    QPainter p(this);
-    if (currentLocation=="mainmenu")    //draw main menu
-        draw_main_menu(p);
-    else if (currentLocation=="lobby")  //draw lobby menu
-        draw_lobby(p);
-    else if (currentLocation=="settings")
-        draw_settings_menu(p);
-}
-
-//MAIN MENU BUTTONS SLOTS
-//***********************************************************
-
-void menu::onPlayClicked()
-{
-    //change current location on lobby menu
-    currentLocation="lobby";
-    //clear screen
-    erase_main_menu();
-
-    //create a first empty slot for player
-    players[0]=new playerCart(this);
-    players[0]->show();
-
-    //create startGame button
-    startButton=new QPushButton(this);
-    startButton->setText("Start Game");
-    startButton->setStyleSheet("background-color: blue; font-size: 17pt; font-weight: bold; color: red;");
-    startButton->show();
-    connect (startButton, SIGNAL(clicked(bool)), this, SLOT(onStartGameClicked()));
-
-    update();
-}
-
-void menu::onSettingsClicked()
-{
-    erase_main_menu();
-    create_settings_menu();
-}
-
-void menu::onExitClicked()
-{
-    QCoreApplication::exit(0);
-}
-//***********************************************************************************************************
-
-//keyboard handler
-void menu::keyPressEvent(QKeyEvent *e)
-{
-    //ESC key for returning to main menu
-    if (e->key()==Qt::Key_Escape)
-    {
-        if (currentLocation=="lobby")
-            erase_lobby();
-
-        //return to main menu
-        create_main_menu();
-    }
+    returnButton->deleteLater();
 }
 
 //TO DO after adding settings menu
@@ -227,6 +187,44 @@ void menu::export_playersData(playerData* playersData)
     }
 }
 
+//**********************************************************
+
+void menu::paintEvent(QPaintEvent *)
+{
+    QPainter p(this);
+    if (currentLocation=="mainmenu")    //draw main menu
+        draw_main_menu(p);
+    else if (currentLocation=="lobby")  //draw lobby menu
+        draw_lobby(p);
+    else if (currentLocation=="settings")
+        draw_settings_menu(p);
+    else if (currentLocation=="keysSettings")
+        draw_keys_settings_menu(p);
+}
+
+//MAIN MENU BUTTONS SLOTS
+//***********************************************************
+
+void menu::onPlayClicked()
+{
+    //clear screen
+    erase_main_menu();
+    create_lobby();
+    //change current location on lobby menu
+    currentLocation="lobby";
+}
+
+void menu::onSettingsClicked()
+{
+    erase_main_menu();
+    create_settings_menu();
+}
+
+void menu::onExitClicked()
+{
+    QCoreApplication::exit(0);
+}
+
 //settings menu
 //**********************************************************
 
@@ -238,12 +236,10 @@ void menu::create_settings_menu()
     keySettingsButton=new menuButton(this, "Keys");
     keySettingsButton->set_text_color(QColor("#994d00"));
     keySettingsButton->show();
+    QObject::connect(keySettingsButton, SIGNAL(clicked(bool)), this, SLOT(onKeySettingsButtonClicked()));
 
     //button for returning to main menu
-    returnButton=new menuButton(this, "Return");
-    returnButton->set_text_color(QColor("#004d00"));
-    returnButton->show();
-    QObject::connect(returnButton, SIGNAL(clicked(bool)), this, SLOT(onReturnFromSettings()));
+    create_returnButton();
 
     currentLocation="settings";
     update();
@@ -265,6 +261,24 @@ void menu::create_settings_groupBox()
     settingsLayout->setSpacing(20);
     settingsBox->show();
 
+    create_resize_option(settingsLayout);
+    settingsLayout->setSpacing(20);
+    create_volume_option(settingsLayout);
+}
+
+void menu::create_volume_option(QFormLayout* settingsLayout)
+{
+    //changing level of sound's volume option
+    QLabel* volumeLabel=new QLabel("Sound's volume");
+    QSlider* slider=new QSlider(Qt::Horizontal);
+    slider->setRange(0, 100);
+    slider->setValue(volume);
+    QObject::connect(slider, SIGNAL(valueChanged(int)), this, SLOT(onSliderValueChanged(int)));
+    settingsLayout->addRow(volumeLabel, slider);
+}
+
+void menu::create_resize_option(QFormLayout *settingsLayout)
+{
     //changing field size option
     QSpinBox* spinBox=new QSpinBox;
     spinBox->setValue(fieldSize);
@@ -273,16 +287,14 @@ void menu::create_settings_groupBox()
     QObject::connect(spinBox, SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxValueChanged(int)));
     QLabel* sizeLabel=new QLabel("Field size");
     settingsLayout->addRow(sizeLabel, spinBox);
+}
 
-    settingsLayout->setSpacing(20);
-
-    //changing level of sound's volume option
-    QLabel* volumeLabel=new QLabel("Sound's volume");
-    QSlider* slider=new QSlider(Qt::Horizontal);
-    slider->setRange(0, 100);
-    slider->setValue(volume);
-    QObject::connect(slider, SIGNAL(valueChanged(int)), this, SLOT(onSliderValueChanged(int)));
-    settingsLayout->addRow(volumeLabel, slider);
+void menu::create_returnButton()
+{
+    returnButton=new menuButton(this, "Return");
+    returnButton->set_text_color(QColor("#004d00"));
+    returnButton->show();
+    QObject::connect(returnButton, SIGNAL(clicked(bool)), this, SLOT(onReturnClicked()));
 }
 
 void menu::draw_settings_menu(QPainter &p)
@@ -297,7 +309,50 @@ void menu::draw_settings_menu(QPainter &p)
     returnButton->setGeometry((width() - w)/2, keySettingsButton->y() + h + (height()*0.1), w, h);
 }
 
-//**********************************************************
+//keys settings menu
+//*************************************************************************
+
+void menu::create_keys_settings_menu()
+{
+    create_change_key_carts();
+    create_returnButton();
+
+    currentLocation="keysSettings";
+    update();
+}
+
+void menu::erase_keys_settings_menu()
+{
+    for (int i=0 ; i<4 ; i++)
+         settingsCarts[i]->deleteLater();
+    returnButton->deleteLater();
+}
+
+void menu::draw_keys_settings_menu(QPainter &p)
+{
+    draw_background(p);
+
+    //horizontall space between carts
+    int hSpacing=10;
+    int w=(width() - (hSpacing * 5))/4, h=height()*0.8;
+    //resize settingsCarts
+    for (int i=0 ; i<4 ; i++)
+         settingsCarts[i]->setGeometry(hSpacing + ( i*(w + hSpacing) ), 10, w, h);
+
+    returnButton->setGeometry(width()/2 - 150, height() - 110, 300, 100);
+}
+
+void menu::create_change_key_carts()
+{
+    playerColor::color colors[4]={playerColor::White, playerColor::Blue, playerColor::Green, playerColor::Yellow};
+    for (int i=0 ; i<4 ; i++)
+    {
+        settingsCarts[i]=new keysSettingsCart(this, colors[i]);
+        settingsCarts[i]->show();
+    }
+}
+
+//*************************************************************************
 
 //begin game
 void menu::onStartGameClicked()
@@ -341,10 +396,31 @@ void menu::onSpinBoxValueChanged(int value)
 void menu::onSliderValueChanged(int value)
 {
     volume=value;
+    keySettingsButton->change_volume(volume);
+    returnButton->change_volume(volume);
 }
 
-void menu::onReturnFromSettings()
+void menu::onReturnClicked()
+{
+    if (currentLocation=="settings")
+    {
+        erase_settings_menu();
+        create_main_menu();
+    }
+    else if (currentLocation=="lobby")
+    {
+        erase_lobby();
+        create_main_menu();
+    }
+    else if (currentLocation=="keysSettings")
+    {
+        erase_keys_settings_menu();
+        create_settings_menu();
+    }
+}
+
+void menu::onKeySettingsButtonClicked()
 {
     erase_settings_menu();
-    create_main_menu();
+    create_keys_settings_menu();
 }

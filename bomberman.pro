@@ -35,7 +35,8 @@ SOURCES += \
     otherFunctions.cpp \
     flame.cpp \
     powerup.cpp \
-    chest.cpp
+    chest.cpp \
+    keyssettingscart.cpp
 
 HEADERS += \
     menubutton.h \
@@ -47,7 +48,8 @@ HEADERS += \
     otherFunctions.h \
     flame.h \
     powerup.h \
-    chest.h
+    chest.h \
+    keyssettingscart.h
 
 FORMS +=
 

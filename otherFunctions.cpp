@@ -13,31 +13,7 @@ playerColor::color string_to_playerColor(QString str)
 
 // CHANGING PLAYER HELMET'S COLOR
 
-QPixmap color_player(playerColor::color color, QString imgPath)
-{
-    QImage img(imgPath);
-    if (color==playerColor::Blue)
-        color_player_helper(img, 32, 40, QColor(0, 76, 153));
-    else if (color==playerColor::Green)
-        color_player_helper(img, 32, 40, QColor(51, 255, 51));
-    else if(color==playerColor::Yellow)
-        color_player_helper(img, 32, 40, Qt::yellow);
-    return QPixmap::fromImage(img);
-}
-
-void color_player_helper(QImage &img, int x, int y, QColor color)
-{
-    if (((x-32)*(x-32)) + ((y-59)*(y-59)) > 25*25 || stop_coloring(img.pixelColor(x, y), color))
-        return;
-
-    img.setPixelColor(x, y, color);
-
-    color_player_helper(img, x, y+1, color);
-    color_player_helper(img, x, y-1, color);
-    color_player_helper(img, x+1, y, color);
-    color_player_helper(img, x-1, y, color);
-}
-
+//function needed to color_player function
 bool stop_coloring(const QColor& color, const QColor& aimedColor)
 {
     //yellow face
@@ -53,4 +29,30 @@ bool stop_coloring(const QColor& color, const QColor& aimedColor)
     if (color.red()==aimedColor.red() && color.green()==aimedColor.green() && color.blue()==aimedColor.blue())
         return true;
     return false;
+}
+
+//recursive function needed to color_player function
+void color_player_helper(QImage &img, int x, int y, QColor color)
+{
+    if (((x-32)*(x-32)) + ((y-59)*(y-59)) > 25*25 || stop_coloring(img.pixelColor(x, y), color))
+        return;
+
+    img.setPixelColor(x, y, color);
+
+    color_player_helper(img, x, y+1, color);
+    color_player_helper(img, x, y-1, color);
+    color_player_helper(img, x+1, y, color);
+    color_player_helper(img, x-1, y, color);
+}
+
+QPixmap color_player(playerColor::color color, QString imgPath)
+{
+    QImage img(imgPath);
+    if (color==playerColor::Blue)
+        color_player_helper(img, 32, 40, QColor(0, 76, 153));
+    else if (color==playerColor::Green)
+        color_player_helper(img, 32, 40, QColor(51, 255, 51));
+    else if(color==playerColor::Yellow)
+        color_player_helper(img, 32, 40, Qt::yellow);
+    return QPixmap::fromImage(img);
 }

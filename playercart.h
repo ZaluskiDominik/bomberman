@@ -37,13 +37,13 @@ public:
         return name;
     }
 
-    //the number of playerCarts
+    //return the number of playerCarts
     static int playersCount()
     {
         return playersCounter;
     }
 
-    //the number of playerCarts that are not empty(slot was taken by a player)
+    //return the number of playerCarts that are not empty(slot was taken by a player)
     static int playersAddedCount()
     {
         return addedPlayers;
@@ -88,10 +88,12 @@ private:
     //***********************************************************************
 
     //create frame around the cart
-    void set_frame();
+    void create_frame();
 
     //create empty slots, player can be added after clicking addButton
-    void set_emptySlot();
+    void create_emptySlot();
+
+    void create_empty_label();
 
     //creates button for deleting player cart
     void set_closeButton();

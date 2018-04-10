@@ -40,8 +40,8 @@ private:
     int bombsPlaced;
 
     //after collecting an item player can push bomb
-    //time in which bomb move one unit of distance
-    int bombPushInterv;
+    //time between next bomb's moves
+    int bombMoveTime;
 
     //list with keys indicating player's moving directory
     QList<int> currDir;

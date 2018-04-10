@@ -1,8 +1,6 @@
 <RCC>
     <qresource prefix="/images">
         <file>img/add_player.png</file>
-        <file>img/volume.png</file>
-        <file>img/choosing_players.jpg</file>
         <file>img/close.png</file>
         <file>img/fields/brick.jpg</file>
         <file>img/fields/chest.png</file>
@@ -45,6 +43,5 @@
     </qresource>
     <qresource prefix="/sounds">
         <file>sounds/button_click.mp3</file>
-        <file>sounds/menu_music.wav</file>
     </qresource>
 </RCC>

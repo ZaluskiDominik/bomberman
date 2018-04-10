@@ -7,6 +7,7 @@
 #include <QFormLayout>
 #include "menubutton.h"
 #include "playercart.h"
+#include "keyssettingscart.h"
 #include "game.h"
 #include "otherFunctions.h"
 
@@ -22,8 +23,6 @@ public:
 protected:
     //handle drawing and resizing
     void paintEvent(QPaintEvent*);
-    //handle pressing keyboard's keys
-    void keyPressEvent(QKeyEvent *e);
 
 private:
     //number of menus
@@ -38,15 +37,20 @@ private:
     QString currentLocation;
 
     //button for starting the game in lobby location
-    QPushButton* startButton;
+    menuButton* startButton;
 
     //game's window with the graphics scene
     game* gameWnd;
 
+    //settings menu
     QGroupBox* settingsBox;
     menuButton* returnButton;
     menuButton* keySettingsButton;
 
+    //keys settings menu
+    keysSettingsCart* settingsCarts[4];
+
+    //main menu
     //************************************************************
 
     void draw_background(QPainter& p);
@@ -67,6 +71,13 @@ private:
     //draw all main menu's widgets
     void draw_main_menu(QPainter &p);
 
+    //lobby
+    //*******************************************************************
+
+    void create_lobby();
+
+    void create_startButton();
+
     //draw lobby with slots(carts) for players to choose their names and colors
     void draw_lobby(QPainter &p);
 
@@ -84,7 +95,20 @@ private:
 
     void create_settings_groupBox();
 
+    void create_volume_option(QFormLayout *settingsLayout);
+    void create_resize_option(QFormLayout *settingsLayout);
+
+    void create_returnButton();
+
     void draw_settings_menu(QPainter& p);
+
+    //keys settings menu
+    //*******************************************************************
+    void create_keys_settings_menu();
+    void erase_keys_settings_menu();
+    void draw_keys_settings_menu(QPainter& p);
+
+    void create_change_key_carts();
 
 private slots:
     //go to lobby
@@ -108,7 +132,10 @@ private slots:
     //user changed sound's volume
     void onSliderValueChanged(int value);
 
-    void onReturnFromSettings();
+    //return to previous menu
+    void onReturnClicked();
+
+    void onKeySettingsButtonClicked();
 
 };
 

@@ -32,7 +32,7 @@ public:
 
 private:
     //time in miliseconds till bomb explode
-    static const int timeToExplode=3000;
+    static const int timeToExplode=2500;
 
     //range of flames after explosion
     const int range;
