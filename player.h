@@ -68,6 +68,10 @@ private:
 
     //**********************************************************************
 
+    void import_player_data(const playerData& data);
+
+    void set_initial_values();
+
     //add new direction if it's one of this player's keys
     void key_pressed(int key);
 

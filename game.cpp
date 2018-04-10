@@ -336,7 +336,7 @@ void game::onDrawFlameRequest(bomb *b)
     create_flame_line(QPoint(0, -fieldSize), *b);
     create_flame_line(QPoint(0, fieldSize), *b);
 
-    //remove the bomb from the scene
+    //remove the bomb from the scene and the list
     bombs.removeOne(b);
     scene->removeItem(b);
 }

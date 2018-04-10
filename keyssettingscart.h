@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QLabel>
 #include <QLineEdit>
-#include <QFormLayout>
+#include <QGridLayout>
 #include <QGroupBox>
 #include <QPushButton>
 #include "otherFunctions.h"
@@ -22,11 +22,16 @@ private:
     const playerColor::color playerColor;
     QLabel* playerLabel;
     QGroupBox* keysBox;
-    QFormLayout* keysLayout;
+    QGridLayout* keysLayout;
 
+    //create groupBox for player's keys
     void create_keys_box();
     //create one row containing key label and name of selected key
-    void create_key_form();
+    void create_key_row(const QPixmap& pixmap, int rotation, QString buttonText, int row);
+    void create_in_row_pixmapLabel(const QPixmap& pixmap, int rotation, int row);
+    void create_in_row_keyButton(QString buttonText, int row);
+
+    void create_all_keys();
 
     void create_playerLabel();
 

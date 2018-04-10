@@ -344,7 +344,7 @@ void menu::draw_keys_settings_menu(QPainter &p)
 
 void menu::create_change_key_carts()
 {
-    playerColor::color colors[4]={playerColor::White, playerColor::Blue, playerColor::Green, playerColor::Yellow};
+    playerColor::color colors[4]={playerColor::color::White, playerColor::color::Blue, playerColor::color::Green, playerColor::color::Yellow};
     for (int i=0 ; i<4 ; i++)
     {
         settingsCarts[i]=new keysSettingsCart(this, colors[i]);

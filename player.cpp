@@ -13,26 +13,11 @@ int player::movingDist;
 player::player(const playerData& data, QGraphicsScene *scene)
     :numPixmaps(8)
 {
-    playerDead=false;
     scene->addItem(this);
     setZValue(2);
 
-    //import data about player, keys setting
-    keys=data.keys;
-    name=data.name;
-    color=string_to_playerColor(data.color);
-    lifes=2;
-    immortal=false;
-
-    //in the beginning player can place only 1 bomb at any time
-    maxNumBombs=1;
-    bombsPlaced=0;
-    explosionRange=1;
-    //in the beginning of the game player can't push bombs
-    bombMoveTime=-1;
-
-    movingTime=40;
-    moveStage=0;
+    import_player_data(data);
+    set_initial_values();
 
     //load player's pixmaps
     setup_pixmaps();
@@ -41,6 +26,28 @@ player::player(const playerData& data, QGraphicsScene *scene)
 
     QObject::connect(&moveTimer, SIGNAL(timeout()), this, SLOT(onMoveTimeout()));
     QObject::connect(&immortalTimer, SIGNAL(timeout()), this, SLOT(onImmortalTimeout()));
+}
+
+void player::import_player_data(const playerData &data)
+{
+    //import data about player, keys setting
+    keys=data.keys;
+    name=data.name;
+    color=string_to_playerColor(data.color);
+    lifes=2;
+}
+
+void player::set_initial_values()
+{
+    playerDead=immortal=false;
+    //in the beginning player can place only 1 bomb at any time
+    maxNumBombs=1;
+    bombsPlaced=0;
+    explosionRange=1;
+    //in the beginning of the game player can't push bombs
+    bombMoveTime=-1;
+    movingTime=40;
+    moveStage=0;
 }
 
 void player::key_pressed(int key)
@@ -82,11 +89,11 @@ void player::key_released(int key)
 
 void player::setup_player(QGraphicsScene* scene)
 {
-    if (color==playerColor::White)
+    if (color==playerColor::color::White)
         setPos(fieldSize, fieldSize);         //top left
-    else if (color==playerColor::Blue)
+    else if (color==playerColor::color::Blue)
         setPos(scene->width() - (2*fieldSize), fieldSize);     //top right
-    else if (color==playerColor::Green)
+    else if (color==playerColor::color::Green)
         setPos(fieldSize, scene->height() - (2*fieldSize));    //bottom left
     else //yellow
         setPos(scene->width() - (2*fieldSize), scene->height() - (2*fieldSize));    //bottom right
@@ -99,28 +106,20 @@ void player::setup_pixmaps()
 {
     //front of the player
     for (int i=0 ; i<numPixmaps ; i++)
-    {
-        playerFront[i]=color_player(color ,":/images/img/players/white/Front/Bman_F_f0" + QString::number(i) + ".png");
-        playerFront[i]=playerFront[i].copy(0, 30, playerFront[i].width(), playerFront[i].height()).scaled(fieldSize, fieldSize);
-    }
+        playerFront[i]=color_player(color ,":/images/img/players/white/Front/Bman_F_f0" + QString::number(i) + ".png").scaled(fieldSize, fieldSize);;
 
     //back of the player
     for (int i=0 ; i<numPixmaps ; i++)
-    {
-        playerBack[i]=color_player(color, ":/images/img/players/white/Back/Bman_B_f0" + QString::number(i) + ".png");
-        playerBack[i]=playerBack[i].copy(0, 30, playerBack[i].width(), playerBack[i].height()).scaled(fieldSize, fieldSize);
-    }
+        playerBack[i]=color_player(color, ":/images/img/players/white/Back/Bman_B_f0" + QString::number(i) + ".png").scaled(fieldSize, fieldSize);;
 
     //side of the player(player look in right direction)
     for (int i=0 ; i<numPixmaps ; i++)
-    {
-        playerSide[i]=color_player(color, ":/images/img/players/white/Side/Bman_F_f0" + QString::number(i) + ".png");
-        playerSide[i]=playerSide[i].copy(0, 30, playerSide[i].width(), playerSide[i].height()).scaled(fieldSize, fieldSize);
-    }
+        playerSide[i]=color_player(color, ":/images/img/players/white/Side/Bman_F_f0" + QString::number(i) + ".png").scaled(fieldSize, fieldSize);;
 }
 
 void player::set_player_pixmap(int dir)
 {
+    //clear all transformations
     setTransform(QTransform());
     if (dir==keys.up)
         setPixmap(playerBack[moveStage]);       //player's back

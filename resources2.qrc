@@ -4,6 +4,7 @@
         <file>img/background.png</file>
         <file>img/heart.png</file>
         <file>img/volume.png</file>
+        <file>img/key_up.png</file>
     </qresource>
     <qresource prefix="/sounds">
         <file>sounds/explode.mp3</file>

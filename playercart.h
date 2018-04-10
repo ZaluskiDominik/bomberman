@@ -83,7 +83,7 @@ private:
     QLineEdit* nameEdit;
 
     //layout containing player's image, name, color
-    QGridLayout* playerData;
+    QGridLayout* playerDataLayout;
 
     //***********************************************************************
 
@@ -95,22 +95,28 @@ private:
 
     void create_empty_label();
 
+    //slot taken
+    //*************************************************************************
+
+    //create bottom part of the cart(the part where user can change his data)
+    void create_data_section();
+
     //creates button for deleting player cart
-    void set_closeButton();
+    void create_closeButton();
 
     //set label containing player's image
-    void set_playerImage_label();
+    void create_playerImage_label();
 
     //change player's image based on selected color
     void change_player_image(QString color);
 
     //create name label and color label
-    void set_playerData_labels();
+    void create_playerData_labels();
 
-    void set_nameEdit();
+    void create_nameEdit();
 
     //create combo box with colors
-    void set_color_box();
+    void create_color_box();
 
     //add colors to combo box that are available to choose
     void add_colors();

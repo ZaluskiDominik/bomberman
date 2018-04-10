@@ -48,11 +48,11 @@ void color_player_helper(QImage &img, int x, int y, QColor color)
 QPixmap color_player(playerColor::color color, QString imgPath)
 {
     QImage img(imgPath);
-    if (color==playerColor::Blue)
+    if (color==playerColor::color::Blue)
         color_player_helper(img, 32, 40, QColor(0, 76, 153));
-    else if (color==playerColor::Green)
+    else if (color==playerColor::color::Green)
         color_player_helper(img, 32, 40, QColor(51, 255, 51));
-    else if(color==playerColor::Yellow)
+    else if(color==playerColor::color::Yellow)
         color_player_helper(img, 32, 40, Qt::yellow);
-    return QPixmap::fromImage(img);
+    return QPixmap::fromImage(img).copy(0, 30, img.width(), img.height());
 }

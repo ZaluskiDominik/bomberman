@@ -69,68 +69,82 @@ void playerCart::create_empty_label()
     frameLayout->addWidget(emptySlot, 0, Qt::AlignCenter);
 }
 
-void playerCart::set_closeButton()
+//slot taken
+//*************************************************************************************
+
+void playerCart::create_data_section()
+{
+    //create layout for player's data
+    playerDataLayout=new QGridLayout;
+    frameLayout->addLayout(playerDataLayout);
+
+    //create combo box with colors
+    create_color_box();
+
+    change_player_image(colorBox->currentText());
+
+    create_playerData_labels();
+
+    create_nameEdit();
+}
+
+void playerCart::create_closeButton()
 {
     closeCart=new QPushButton;
-    //set icon
     closeCart->setIcon(QIcon(":/images/img/close.png"));
-
     //set fixed size 16x16
     closeCart->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     closeCart->setFixedSize(16, 16);
     closeCart->setIconSize(QSize(16, 16));
-
-    connect (closeCart, SIGNAL(clicked(bool)), this, SLOT(onCartClosed()));
-
     //add button to frame layout
     frameLayout->addWidget(closeCart, 0, Qt::AlignRight);
+    QObject::connect(closeCart, SIGNAL(clicked(bool)), this, SLOT(onCartClosed()));
 }
 
-void playerCart::set_playerImage_label()
+void playerCart::create_playerImage_label()
 {
     playerImage=new QLabel;
     playerImage->setScaledContents(true);
     frameLayout->addWidget(playerImage);
 }
 
-void playerCart::set_playerData_labels()
+void playerCart::create_playerData_labels()
 {
     //name label
     nameLabel=new QLabel;
     nameLabel->setText("Name:");
-    playerData->addWidget(nameLabel, 0, 0);
+    playerDataLayout->addWidget(nameLabel, 0, 0);
 
     //color label
     colorLabel=new QLabel;
     colorLabel->setText("Color: ");
-    playerData->addWidget(colorLabel, 1, 0);
+    playerDataLayout->addWidget(colorLabel, 1, 0);
 }
 
-void playerCart::set_nameEdit()
+void playerCart::create_nameEdit()
 {
     nameEdit=new QLineEdit;
     //set max name's length
     nameEdit->setMaxLength(12);
-    playerData->addWidget(nameEdit, 0, 1);
+    playerDataLayout->addWidget(nameEdit, 0, 1);
     //receive signal after user end typying
-    connect (nameEdit, SIGNAL(editingFinished()), this, SLOT(onNameEntered()));
+    QObject::connect(nameEdit, SIGNAL(editingFinished()), this, SLOT(onNameEntered()));
 }
 
 void playerCart::change_player_image(QString color)
 {
     //color player's helmet
     QPixmap p=color_player(string_to_playerColor(color), ":/images/img/players/white/Front/Bman_F_f00.png");
-
-    //cut and scale pixmap
-    playerImage->setPixmap(p.copy(0, 30, p.width(), p.height()).scaled(playerImage->width(), playerImage->height()));
+    //scale pixmap
+    playerImage->setPixmap(p.scaled(playerImage->width(), playerImage->height()));
 }
 
-void playerCart::set_color_box()
+void playerCart::create_color_box()
 {
     colorBox=new QComboBox;
 
     //add to frame layout
-    playerData->addWidget(colorBox, 1, 1);
+    playerDataLayout->addWidget(colorBox, 1, 1);
     //add colors to combo box
     add_colors();
 
@@ -180,32 +194,20 @@ void playerCart::onAddPlayer()
     //delete previous layout of the empty cart
     frameLayout->deleteLater();
     playerFrame->deleteLater();
-
     //create new frame
     create_frame();
 
     //add closeButton at top right corner
-    set_closeButton();
+    create_closeButton();
+    create_playerImage_label();
 
-    set_playerImage_label();
-
-    playerData=new QGridLayout;
-    frameLayout->addLayout(playerData);
-
-    //create combo box with colors
-    set_color_box();
-
-    change_player_image(colorBox->currentText());
-
-    set_playerData_labels();
-
-    set_nameEdit();
+    create_data_section();
 
     //update combo boxes of others players(other player shouldn't be able to choose the color of this player)
     for (int i=0 ; i<playersCounter-1 ; i++)
         players[i]->colorBox->removeItem(players[i]->colorBox->findText(color));
 
-    //mark this slot as taken by player
+    //mark this slot as taken by the player
     playerAdded=true;
     addedPlayers++;
 

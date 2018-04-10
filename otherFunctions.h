@@ -8,7 +8,7 @@
 //enum with available player's colors
 namespace playerColor
 {
-    enum color{White=0, Blue, Green, Yellow};
+    enum class color{White=0, Blue, Green, Yellow};
 }
 
 //functions
@@ -36,11 +36,6 @@ struct keys_t
 
 struct playerData
 {
-    playerData()
-    {
-
-    }
-
     keys_t keys;
     QString color, name;
     //how many times player can be hit by bomb's explosion
