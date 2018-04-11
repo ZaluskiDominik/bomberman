@@ -49,6 +49,16 @@ private:
 
     //keys settings menu
     keysSettingsCart* settingsCarts[4];
+    menuButton* applyButton;
+
+    //player's settings
+    playerData data[4];
+
+    //load players' key settings from file
+    void load_players_settings();
+
+    //if file with settings doesn't exist
+    void load_default_settings();
 
     //main menu
     //************************************************************
@@ -109,6 +119,7 @@ private:
     void draw_keys_settings_menu(QPainter& p);
 
     void create_change_key_carts();
+    void create_apply_button();
 
 private slots:
     //go to lobby

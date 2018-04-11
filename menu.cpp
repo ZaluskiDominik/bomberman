@@ -5,6 +5,7 @@
 #include <QGraphicsDropShadowEffect>
 #include <QSpinBox>
 #include <QSlider>
+#include <fstream>
 
 int fieldSize=60;
 int volume=50;
@@ -19,9 +20,48 @@ menu::menu(QWidget *parent) :
     setWindowTitle("Bomberman");
     setMinimumSize(600, 700);
     setMaximumSize(900, 1000);
+    load_players_settings();
 
     //display main menu
     create_main_menu();
+}
+
+void menu::load_players_settings()
+{
+    std::ifstream file("keys.txt");
+    std::string color;
+
+    if (file.is_open())
+    {
+        for (int i=0 ; i<4 ; i++)
+        {
+            file>>color;
+            data[i].color=QString::fromStdString(color);
+            file>>data[i].keys.up;
+            file>>data[i].keys.down;
+            file>>data[i].keys.left;
+            file>>data[i].keys.right;
+            file>>data[i].keys.bomb;
+        }
+        file.close();
+    }
+    else
+        load_default_settings();
+}
+
+void menu::load_default_settings()
+{
+    //players' colors
+    data[0].color="white";
+    data[1].color="blue";
+    data[2].color="green";
+    data[3].color="yellow";
+
+    //keys
+    data[0].keys={Qt::Key_Up, Qt::Key_Down, Qt::Key_Left, Qt::Key_Right, Qt::Key_Return};
+    data[1].keys={Qt::Key_W, Qt::Key_S, Qt::Key_A, Qt::Key_D, Qt::Key_Tab};
+    data[2].keys={Qt::Key_5, Qt::Key_2, Qt::Key_1, Qt::Key_3, Qt::Key_9};
+    data[3].keys={Qt::Key_K, ',', Qt::Key_M, '.', Qt::Key_Space};
 }
 
 void menu::draw_background(QPainter &p)
@@ -347,9 +387,16 @@ void menu::create_change_key_carts()
     playerColor::color colors[4]={playerColor::color::White, playerColor::color::Blue, playerColor::color::Green, playerColor::color::Yellow};
     for (int i=0 ; i<4 ; i++)
     {
-        settingsCarts[i]=new keysSettingsCart(this, colors[i]);
+        settingsCarts[i]=new keysSettingsCart(this, colors[i], data[i].keys);
         settingsCarts[i]->show();
     }
+}
+
+void menu::create_apply_button()
+{
+    applyButton=new menuButton(this, "Apply");
+    applyButton->set_text_color(QColor("#ff0000"));
+    applyButton->show();
 }
 
 //*************************************************************************

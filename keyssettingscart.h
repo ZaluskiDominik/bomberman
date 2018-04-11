@@ -13,16 +13,20 @@ class keysSettingsCart : public QWidget
 {
     Q_OBJECT
 public:
-    explicit keysSettingsCart(QWidget *parent, playerColor::color color);
+    explicit keysSettingsCart(QWidget *parent, playerColor::color color, const keys_t &keys);
 
 protected:
     void paintEvent(QPaintEvent *);
 
 private:
     const playerColor::color playerColor;
+    keys_t playerKeys;
     QLabel* playerLabel;
     QGroupBox* keysBox;
     QGridLayout* keysLayout;
+
+    //transform intiger value of a key to string representation
+    QString from_key_number_to_string(int key);
 
     //create groupBox for player's keys
     void create_keys_box();
