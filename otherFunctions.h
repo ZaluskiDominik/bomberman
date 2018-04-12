@@ -36,6 +36,8 @@ struct playerData
     QString color, name;
     //how many times player can be hit by bomb's explosion
     int lifes;
+    //whether this player's color was choosen in lobby
+    bool inGame;
 };
 
 #endif // STRUCTURES_H

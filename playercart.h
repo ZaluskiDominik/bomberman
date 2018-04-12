@@ -26,25 +26,25 @@ public:
     }
 
     //return player's color
-    QString playerColor()
+    QString get_player_color()
     {
         return color;
     }
 
     //return player's name
-    QString playerName()
+    QString get_player_name()
     {
         return name;
     }
 
     //return the number of playerCarts
-    static int playersCount()
+    static int carts_count()
     {
         return playersCounter;
     }
 
     //return the number of playerCarts that are not empty(slot was taken by a player)
-    static int playersAddedCount()
+    static int added_carts_count()
     {
         return addedPlayers;
     }

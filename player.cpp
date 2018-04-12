@@ -34,7 +34,7 @@ void player::import_player_data(const playerData &data)
     keys=data.keys;
     name=data.name;
     color=string_to_playerColor(data.color);
-    lifes=2;
+    lifes=data.lifes;
 }
 
 void player::set_initial_values()

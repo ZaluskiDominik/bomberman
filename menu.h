@@ -23,6 +23,7 @@ public:
 protected:
     //handle drawing and resizing
     void paintEvent(QPaintEvent*);
+    void keyPressEvent(QKeyEvent* e);
 
 private:
     //number of menus
@@ -94,8 +95,7 @@ private:
     //clear lobby's window layout
     void erase_lobby();
 
-    //export player data obtained in playerCart class to game class
-    void export_playersData(playerData *playersData);
+    void prepare_playersData_to_export();
 
     //settings menu
     //*******************************************************************
@@ -105,8 +105,10 @@ private:
 
     void create_settings_groupBox();
 
+    QLabel* create_label_for_option(QString title);
     void create_volume_option(QFormLayout *settingsLayout);
     void create_resize_option(QFormLayout *settingsLayout);
+    void create_lifes_option(QFormLayout* settigsLayout);
 
     void create_returnButton();
 
@@ -118,8 +120,13 @@ private:
     void erase_keys_settings_menu();
     void draw_keys_settings_menu(QPainter& p);
 
+    //buttons after clicking provide option for changing a key
     void create_change_key_carts();
     void create_apply_button();
+    //resize apply and return buttons
+    void resize_buttons_in_keys_setings();
+
+    void save_players_settings(std::ofstream& file);
 
 private slots:
     //go to lobby
@@ -138,7 +145,10 @@ private slots:
     void onGameEnded();
 
     //user changed field size
-    void onSpinBoxValueChanged(int value);
+    void onSpinBoxSizeValueChanged(int value);
+
+    //number of lifes changed
+    void onSpinBoxLifesValueChanged(int value);
 
     //user changed sound's volume
     void onSliderValueChanged(int value);
@@ -146,7 +156,11 @@ private slots:
     //return to previous menu
     void onReturnClicked();
 
+    //go to keys settings menu
     void onKeySettingsButtonClicked();
+
+    //save keys
+    void onApplyButtonClicked();
 
 };
 

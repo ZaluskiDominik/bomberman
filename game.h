@@ -14,7 +14,7 @@ class game : public QDialog
 {
     Q_OBJECT
 public:
-    explicit game(QWidget *parent, const playerData* playersData, int numPlayers);
+    explicit game(QWidget *parent, const playerData* playersData);
     ~game();
 
 private:
@@ -22,7 +22,7 @@ private:
     //obstacle - undestroyable, road - background, Brick - frame, Chest - destroyable
     enum fieldType{Road=0, Obstacle, Chest, Brick};
 
-    const int numPowerups;
+    int numPowerups;
 
     //field pixmaps
     QPixmap fields[3];
@@ -58,7 +58,7 @@ private:
     void create_powerups();
 
     //create players and set their positions
-    void spawn_players(const playerData *data, int numPlayers);
+    void spawn_players(const playerData *data);
 
     void create_flame_line(QPoint direction, const bomb &b);
 

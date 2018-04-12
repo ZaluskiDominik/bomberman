@@ -6,6 +6,7 @@
 #include <QSpinBox>
 #include <QSlider>
 #include <fstream>
+#include <QMessageBox>
 
 int fieldSize=60;
 int volume=50;
@@ -18,8 +19,8 @@ menu::menu(QWidget *parent) :
 {
     //set the window's title and the window's resolution
     setWindowTitle("Bomberman");
-    setMinimumSize(600, 700);
-    setMaximumSize(900, 1000);
+    setMinimumSize(800, 800);
+    setMaximumSize(1100, 1020);
     load_players_settings();
 
     //display main menu
@@ -59,7 +60,7 @@ void menu::load_default_settings()
 
     //keys
     data[0].keys={Qt::Key_Up, Qt::Key_Down, Qt::Key_Left, Qt::Key_Right, Qt::Key_Return};
-    data[1].keys={Qt::Key_W, Qt::Key_S, Qt::Key_A, Qt::Key_D, Qt::Key_Tab};
+    data[1].keys={Qt::Key_W, Qt::Key_S, Qt::Key_A, Qt::Key_D, Qt::Key_CapsLock};
     data[2].keys={Qt::Key_5, Qt::Key_2, Qt::Key_1, Qt::Key_3, Qt::Key_9};
     data[3].keys={Qt::Key_K, ',', Qt::Key_M, '.', Qt::Key_Space};
 }
@@ -70,6 +71,9 @@ void menu::draw_background(QPainter &p)
     img=img.scaled(width(), height());
     p.drawImage(0, 0, img);
 }
+
+//main menu
+//*********************************************************************************************
 
 void menu::create_main_menu()
 {
@@ -193,37 +197,31 @@ void menu::draw_lobby(QPainter& p)
 
     //resize slots for players
     const int cartH=(height() - 25 - 90)/2, cartW=(width() - 25)/2;
-    for (int i=0 ; i<playerCart::playersCount() ; i++)
+    for (int i=0 ; i<playerCart::carts_count() ; i++)
         players[i]->setGeometry((i%2) * (cartW+5) + 10, (i/2) * (cartH+5) + 10, cartW, cartH);
 }
 
 void menu::erase_lobby()
 {
     //delete all player's slots carts
-    for (int i=0 ; i<playerCart::playersCount() ; i++)
+    for (int i=0 ; i<playerCart::carts_count() ; i++)
         players[i]->deleteLater();
 
     startButton->deleteLater();
     returnButton->deleteLater();
 }
 
-//TO DO after adding settings menu
-void menu::export_playersData(playerData* playersData)
+void menu::prepare_playersData_to_export()
 {
-    for (int i=0 ; i<playerCart::playersAddedCount() ; i++)
-    {
-        playersData[i].color=players[i]->playerColor();
-        playersData[i].name=players[i]->playerName();
+    for (int i=0 ; i<4 ; i++)
+        data[i].inGame=false;
 
-        //temporary
-        if (playersData[i].color!="white")
-        {
-            playersData[i].keys.up=Qt::Key_W;
-            playersData[i].keys.down=Qt::Key_S;
-            playersData[i].keys.left=Qt::Key_A;
-            playersData[i].keys.right=Qt::Key_D;
-            playersData[i].keys.bomb=Qt::Key_Tab;
-        }
+    for (int i=0, j ; i<playerCart::added_carts_count() ; i++)
+    {
+        for (j=0 ; j<4 && data[j].color!=players[i]->get_player_color() ; j++);
+        data[j].name=players[i]->get_player_name();
+        //player with this data will be in game
+        data[j].inGame=true;
     }
 }
 
@@ -240,6 +238,15 @@ void menu::paintEvent(QPaintEvent *)
         draw_settings_menu(p);
     else if (currentLocation=="keysSettings")
         draw_keys_settings_menu(p);
+}
+
+void menu::keyPressEvent(QKeyEvent *e)
+{
+    if (keysSettingsCart::changedKey_selected())
+    {
+        keysSettingsCart::change_key(e->key());
+        keysSettingsCart::select_changedKey(false);
+    }
 }
 
 //MAIN MENU BUTTONS SLOTS
@@ -294,39 +301,73 @@ void menu::erase_settings_menu()
 
 void menu::create_settings_groupBox()
 {
-    QFormLayout* settingsLayout=new QFormLayout(this);
+    QFormLayout* settingsLayout=new QFormLayout;
     settingsBox=new QGroupBox("Game settings", this);
-    settingsBox->setStyleSheet("background: transparent");
+    settingsBox->setStyleSheet("background: transparent; color: white");
     settingsBox->setLayout(settingsLayout);
-    settingsLayout->setSpacing(20);
+    QFont f;
+    f.setPointSize(10);
+    f.setBold(true);
+    settingsBox->setFont(f);
+
+    //resize settings group box
+    const int w=width()*0.65, h=200;
+    settingsBox->setGeometry((width() - w)/2, height()*0.1, w, h);
     settingsBox->show();
 
+    settingsLayout->setContentsMargins(6, 25, 6, 6);
+    //row for resizing fields size
     create_resize_option(settingsLayout);
     settingsLayout->setSpacing(20);
+    //row for changing volume
     create_volume_option(settingsLayout);
+    settingsLayout->setSpacing(20);
+    //row for changing number of lifes
+    create_lifes_option(settingsLayout);
+}
+
+QLabel *menu::create_label_for_option(QString title)
+{
+    QLabel* label=new QLabel(title);
+    label->setFont(settingsBox->font());
+    return label;
 }
 
 void menu::create_volume_option(QFormLayout* settingsLayout)
 {
     //changing level of sound's volume option
-    QLabel* volumeLabel=new QLabel("Sound's volume");
     QSlider* slider=new QSlider(Qt::Horizontal);
+    //set minimal and maximal values
     slider->setRange(0, 100);
     slider->setValue(volume);
     QObject::connect(slider, SIGNAL(valueChanged(int)), this, SLOT(onSliderValueChanged(int)));
-    settingsLayout->addRow(volumeLabel, slider);
+    settingsLayout->addRow(create_label_for_option("Sound's volume: "), slider);
 }
 
 void menu::create_resize_option(QFormLayout *settingsLayout)
 {
     //changing field size option
     QSpinBox* spinBox=new QSpinBox;
+    spinBox->setStyleSheet("background-color: white; color: black");
     spinBox->setValue(fieldSize);
+    //set minimal and maximal values
     spinBox->setRange(40, 100);
     spinBox->setSingleStep(10);
-    QObject::connect(spinBox, SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxValueChanged(int)));
-    QLabel* sizeLabel=new QLabel("Field size");
-    settingsLayout->addRow(sizeLabel, spinBox);
+    QObject::connect(spinBox, SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxSizeValueChanged(int)));
+
+    settingsLayout->addRow(create_label_for_option("Field size: "), spinBox);
+}
+
+void menu::create_lifes_option(QFormLayout *settigsLayout)
+{
+    QSpinBox* spinBox=new QSpinBox;
+    spinBox->setStyleSheet("background-color: white; color: black");
+    spinBox->setRange(1, 10);
+    //set initial number of lifes
+    spinBox->setValue(2);
+    onSpinBoxLifesValueChanged(2);
+    QObject::connect(spinBox, SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxLifesValueChanged(int)));
+    settigsLayout->addRow(create_label_for_option("Lifes: "), spinBox);
 }
 
 void menu::create_returnButton()
@@ -340,11 +381,8 @@ void menu::create_returnButton()
 void menu::draw_settings_menu(QPainter &p)
 {
     draw_background(p);
-    int w=width()*0.65, h=height()*0.15;
-    //resize settings group box
-    settingsBox->setGeometry((width() - w)/2, height()*0.1, w, h);
-
-    h=height()*0.2;
+    //resize bith buttons
+    int h=height()*0.2, w=settingsBox->width();
     keySettingsButton->setGeometry((width() - w)/2, settingsBox->y() + settingsBox->height() + (height()*0.1), w, h);
     returnButton->setGeometry((width() - w)/2, keySettingsButton->y() + h + (height()*0.1), w, h);
 }
@@ -356,6 +394,7 @@ void menu::create_keys_settings_menu()
 {
     create_change_key_carts();
     create_returnButton();
+    create_apply_button();
 
     currentLocation="keysSettings";
     update();
@@ -363,9 +402,12 @@ void menu::create_keys_settings_menu()
 
 void menu::erase_keys_settings_menu()
 {
+    //remove any highlighted key that could be selected for changing
+    keysSettingsCart::select_changedKey(false);
     for (int i=0 ; i<4 ; i++)
          settingsCarts[i]->deleteLater();
     returnButton->deleteLater();
+    applyButton->deleteLater();
 }
 
 void menu::draw_keys_settings_menu(QPainter &p)
@@ -379,7 +421,8 @@ void menu::draw_keys_settings_menu(QPainter &p)
     for (int i=0 ; i<4 ; i++)
          settingsCarts[i]->setGeometry(hSpacing + ( i*(w + hSpacing) ), 10, w, h);
 
-    returnButton->setGeometry(width()/2 - 150, height() - 110, 300, 100);
+    //resize return and apply buttons
+    resize_buttons_in_keys_setings();
 }
 
 void menu::create_change_key_carts()
@@ -397,6 +440,32 @@ void menu::create_apply_button()
     applyButton=new menuButton(this, "Apply");
     applyButton->set_text_color(QColor("#ff0000"));
     applyButton->show();
+    QObject::connect(applyButton, SIGNAL(clicked(bool)), this, SLOT(onApplyButtonClicked()));
+}
+
+void menu::resize_buttons_in_keys_setings()
+{
+    int w=width()*0.4, h=80;
+    int yOffset=settingsCarts[0]->y() + settingsCarts[0]->height();
+    returnButton->setGeometry((width()/2 - w)/2, yOffset + ((height() - yOffset - h)/2), w, h);
+    applyButton->setGeometry(width()*3/4 - (w/2), yOffset + ((height() - yOffset - h)/2), w, h);
+}
+
+void menu::save_players_settings(std::ofstream& file)
+{
+    //get keys from settingsCarts
+    for (int i=0 ; i<4 ; i++)
+         data[i].keys=settingsCarts[i]->get_keys();
+    //write to file
+    for (int i=0 ; i<4 ; i++)
+    {
+        file<<data[i].color.toStdString()<<"\n";
+        file<<data[i].keys.up<<"\n";
+        file<<data[i].keys.down<<"\n";
+        file<<data[i].keys.left<<"\n";
+        file<<data[i].keys.right<<"\n";
+        file<<data[i].keys.bomb<<"\n";
+    }
 }
 
 //*************************************************************************
@@ -405,18 +474,15 @@ void menu::create_apply_button()
 void menu::onStartGameClicked()
 {
     //if number of players is less than 1 return
-    if (playerCart::playersAddedCount()<1)
+    if (playerCart::added_carts_count()<1)
         return;
 
     //hide main menu's window
     hide();
-
-    //prepare structure for exporting players' data
-    playerData playersData[playerCart::playersAddedCount()];
-    export_playersData(playersData);
+    prepare_playersData_to_export();
 
     //show game's window
-    gameWnd=new game(this, playersData, playerCart::playersAddedCount());
+    gameWnd=new game(this, data);
     gameWnd->show();
 
     //connect slot witch will react on the end of the game
@@ -430,13 +496,19 @@ void menu::onGameEnded()
     erase_lobby();
     create_main_menu();
     show();
-
-    //take over handling the keyboard events
-    grabKeyboard();
 }
 
-void menu::onSpinBoxValueChanged(int value)
+void menu::onSpinBoxLifesValueChanged(int value)
 {
+    for (int i=0 ; i<4 ; i++)
+        data[i].lifes=value;
+}
+
+void menu::onSpinBoxSizeValueChanged(int value)
+{
+    QSpinBox* spinBox=qobject_cast<QSpinBox*>(sender());
+    if (value%10)
+        spinBox->setValue(int(value/10)*10);
     fieldSize=value;
 }
 
@@ -470,4 +542,19 @@ void menu::onKeySettingsButtonClicked()
 {
     erase_settings_menu();
     create_keys_settings_menu();
+}
+
+void menu::onApplyButtonClicked()
+{
+    std::ofstream file("keys.txt");
+    if (!file.is_open())
+    {
+        //error
+        QMessageBox::critical(this, "Error", "Could not save keys' settings! Please try again.", QMessageBox::Ok);
+    }
+    else
+    {
+        save_players_settings(file);
+        QMessageBox::information(this, "Operation successful", "Keys' settings saved.", QMessageBox::Ok);
+    }
 }

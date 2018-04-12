@@ -21,8 +21,8 @@ QList<QGraphicsItem*> gamePlayers;
 //lists with bombs placed currently at the scene
 QList<bomb*> bombs;
 
-game::game(QWidget* parent, const playerData *playersData, int numPlayers)
-    :QDialog(parent, Qt::WindowCloseButtonHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint), numPowerups(15)
+game::game(QWidget* parent, const playerData *playersData)
+    :QDialog(parent, Qt::WindowCloseButtonHint | Qt::WindowTitleHint | Qt::WindowMinimizeButtonHint)
 {
     //handle keybord events
     grabKeyboard();
@@ -42,6 +42,7 @@ game::game(QWidget* parent, const playerData *playersData, int numPlayers)
         deleteLater();
         return;
     }
+    numPowerups=chests.size()/3;
 
     //draw graphicsView's frame made of brick
     draw_bricks();
@@ -49,7 +50,7 @@ game::game(QWidget* parent, const playerData *playersData, int numPlayers)
     create_powerups();
 
     //draw players
-    spawn_players(playersData, numPlayers);
+    spawn_players(playersData);
     bomb::movingDistance=fieldSize/10;
 }
 
@@ -214,14 +215,17 @@ void game::create_powerups()
     }
 }
 
-void game::spawn_players(const playerData* data, int numPlayers)
+void game::spawn_players(const playerData* data)
 {
     player::movingDist=fieldSize/10;
-    for (int i=0 ; i<numPlayers ; i++)
+    for (int i=0 ; i<4 ; i++)
     {
-        player* newPlayer=new player(data[i], scene);
-        gamePlayers.append(newPlayer);
-        QObject::connect(newPlayer, SIGNAL(drawFlamesRequest(bomb*)), this, SLOT(onDrawFlameRequest(bomb*)));
+        if (data[i].inGame)
+        {
+            player* newPlayer=new player(data[i], scene);
+            gamePlayers.append(newPlayer);
+            QObject::connect(newPlayer, SIGNAL(drawFlamesRequest(bomb*)), this, SLOT(onDrawFlameRequest(bomb*)));
+        }
     }
 }
 
