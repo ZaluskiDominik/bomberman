@@ -161,7 +161,7 @@ void player::place_bomb()
 
     //create a new bomb
     bombsPlaced++;
-    bombs.append( new bomb(bombPos, explosionRange, this, scene()) );
+    bombs.append(new bomb(bombPos, explosionRange, this, scene()));
     QObject::connect(bombs.back(), SIGNAL(bombExploded()), this, SLOT(onBombExploded()));
 }
 
@@ -276,6 +276,8 @@ void player::handle_powerups(QList<QGraphicsItem *> &collide)
                     break;
                 case powerup::powerupType::Boots:
                     movingTime = (movingTime>15) ? movingTime*0.9 : movingTime;
+                    moveTimer.stop();
+                    moveTimer.start(movingTime);
                     break;
                 case powerup::powerupType::BiggerRange:
                     explosionRange++;

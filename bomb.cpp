@@ -43,6 +43,8 @@ void bomb::explode()
 {
     if (!exploded)
     {
+        explodeTimer.stop();
+        pushTimer.stop();
         exploded=true;
         emit bombExploded();
     }
@@ -83,16 +85,8 @@ void bomb::push_bomb(int moveTime, QPoint direction)
     }
 }
 
-void bomb::instant_explode()
-{
-    explodeTimer.stop();
-    pushTimer.stop();
-    explode();
-}
-
 void bomb::onExplodeTimeout()
 {
-    explodeTimer.stop();
     aboutToExplode=true;
     if (!bombPushed)
         explode();
@@ -121,15 +115,15 @@ void bomb::onPushTimeout()
 
         //flame collision
         if (typeid(*collide.first())==typeid(flame))
+        {
             explode();
+            return;
+        }
     }
 
     //check if it's time for explode
     if (aboutToExplode && int(y())%fieldSize==0 && int(x())%fieldSize==0)
-    {
-        pushTimer.stop();
         explode();
-    }
 }
 
 void bomb::onMusicStateChanged(QMediaPlayer::State state)

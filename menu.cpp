@@ -36,8 +36,10 @@ void menu::load_players_settings()
     {
         for (int i=0 ; i<4 ; i++)
         {
+            //player's color
             file>>color;
             data[i].color=QString::fromStdString(color);
+            //player's keys
             file>>data[i].keys.up;
             file>>data[i].keys.down;
             file>>data[i].keys.left;
@@ -48,6 +50,10 @@ void menu::load_players_settings()
     }
     else
         load_default_settings();
+
+    //set initial number of lifes
+    for (int i=0 ; i<4 ; i++)
+        data[i].lifes=2;
 }
 
 void menu::load_default_settings()
@@ -364,8 +370,7 @@ void menu::create_lifes_option(QFormLayout *settigsLayout)
     spinBox->setStyleSheet("background-color: white; color: black");
     spinBox->setRange(1, 10);
     //set initial number of lifes
-    spinBox->setValue(2);
-    onSpinBoxLifesValueChanged(2);
+    spinBox->setValue(data[0].lifes);
     QObject::connect(spinBox, SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxLifesValueChanged(int)));
     settigsLayout->addRow(create_label_for_option("Lifes: "), spinBox);
 }

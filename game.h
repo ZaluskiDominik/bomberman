@@ -9,6 +9,7 @@
 #include <QList>
 #include "otherFunctions.h"
 #include "player.h"
+#include "flame.h"
 
 class game : public QDialog
 {
@@ -22,6 +23,7 @@ private:
     //obstacle - undestroyable, road - background, Brick - frame, Chest - destroyable
     enum fieldType{Road=0, Obstacle, Chest, Brick};
 
+    //number of powerups that will be created
     int numPowerups;
 
     //field pixmaps
@@ -62,9 +64,10 @@ private:
 
     void create_flame_line(QPoint direction, const bomb &b);
 
-    bool is_obstacle(const QGraphicsItem* const item);
-
-    bool is_chest(const QGraphicsItem* const item);
+    //react on flame collisions with various objects, returns true if drawing flames should be stopped
+    bool handle_flame_collisions(flame *newFlame);
+    void flame_with_chest_collision(QGraphicsItem* item);
+    void flame_with_powerup_collision(QGraphicsItem* item);
 
 protected:
     void keyPressEvent(QKeyEvent* e);

@@ -3,7 +3,6 @@
 #include <QMessageBox>
 #include <algorithm>
 #include <ctime>
-#include "flame.h"
 
 //every field is a square
 //length of the side of the square
@@ -27,11 +26,9 @@ game::game(QWidget* parent, const playerData *playersData)
     //handle keybord events
     grabKeyboard();
     scene=nullptr;
-
     setWindowTitle("Bomberman");
 
     load_pixmaps();
-    chest::load_pixmaps();
 
     //load the map to memory
     if (!load_map())
@@ -43,15 +40,11 @@ game::game(QWidget* parent, const playerData *playersData)
         return;
     }
     numPowerups=chests.size()/3;
-
-    //draw graphicsView's frame made of brick
-    draw_bricks();
-
-    create_powerups();
-
-    //draw players
-    spawn_players(playersData);
     bomb::movingDistance=fieldSize/10;
+
+    draw_bricks();
+    create_powerups();
+    spawn_players(playersData);
 }
 
 game::~game()
@@ -67,7 +60,6 @@ game::~game()
     bombs.clear();
 
     chest::free_pixmaps();
-
     if (scene!=nullptr)
         scene->clear();
 }
@@ -85,13 +77,13 @@ void game::setup_graphics()
     //set view's scroll bars off
     view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
     //set background image
     scene->setBackgroundBrush(QImage(":/images/img/fields/road.jpg"));
 }
 
 void game::load_pixmaps()
 {
+    chest::load_pixmaps();
     fields[0].load(":/images/img/fields/obstacle.png");
     fields[1].load(":/images/img/fields/brick.jpg");
     fields[2].load(":/images/img/fields/chest.png");
@@ -128,10 +120,8 @@ bool game::load_map()
 
     //set window resolution
     setFixedSize(fieldSize * w, fieldSize * h);
-
     //create graphics scene
     setup_graphics();
-
     //read fields and draw them
     draw_fields(file);
 
@@ -244,67 +234,65 @@ void game::create_flame_line(QPoint direction, const bomb& b)
     for (int j=0 ; j<numFlames ; j++)
     {
         flamePos+=direction;
-
+        //create a new flame
         flame* newFlame=new flame;
         newFlame->setPos(flamePos);
         scene->addItem(newFlame);
 
-        auto collide=newFlame->collidingItems(Qt::IntersectsItemBoundingRect);
-        //go through the list in reversed order
-        for (auto i=collide.rbegin() ; i!=collide.rend() ; i++)
-        {
-            if (typeid(**i)==typeid(player))
-                static_cast<player*>(*i)->explosion_hit();
-            else if (is_obstacle(*i) || ( (*i)->x()==0 ) || ( (*i)->x()==width() - fieldSize ) || ( (*i)->y()==0) || ( (*i)->y()==height() - fieldSize ) )
-            {
-                //obstacle or brick
-                //stop drawing flames, delete flame added at last
-                newFlame->deleteLater();
-                return;
-            }
-            else if (typeid(**i)==typeid(bomb))
-            {
-                static_cast<bomb*>(*i)->instant_explode();
-            }
-            else if (typeid(**i)==typeid(chest))
-            {
-                //stop drawing flames, explode chest
-                chest* c=static_cast<chest*>(*i);
-                if (!c->inDestruction)
-                {
-                    chests.removeOne(c);
-                    c->inDestruction=true;
-                    c->explode();
-                }
-                newFlame->deleteLater();
-                return;
-            }
-            else if (typeid(**i)==typeid(powerup))
-            {
-                powerup* item=static_cast<powerup*>(*i);
-                if (item->is_pickable())
-                    delete item;
-                else
-                    item->set_as_pickable();
-            }
-        }
+        if (handle_flame_collisions(newFlame))
+            break;
     }
 }
 
-bool game::is_obstacle(const QGraphicsItem * const item)
+bool game::handle_flame_collisions(flame *newFlame)
 {
-    for (auto i =obstacles.begin() ; i!=obstacles.end() ; i++)
-        if ((*i)==item)
+    auto collide=newFlame->collidingItems(Qt::IntersectsItemBoundingRect);
+    //go through the list in reversed order(first go powerups, last - players)
+    for (auto i=collide.rbegin() ; i!=collide.rend() ; i++)
+    {
+        if (typeid(**i)==typeid(player))
+            static_cast<player*>(*i)->explosion_hit();
+        else if (typeid(**i)==typeid(bomb))
+            static_cast<bomb*>(*i)->explode();
+        else if (typeid(**i)==typeid(obstacle) || ( (*i)->x()==0 ) || ( (*i)->x()==width() - fieldSize ) || ( (*i)->y()==0) || ( (*i)->y()==height() - fieldSize ) )
+        {
+            //stop drawing flames and delete the last added flame
+            newFlame->deleteLater();
             return true;
+        }
+        else if (typeid(**i)==typeid(chest))
+        {
+            flame_with_chest_collision(*i);
+            //stop drawing flames and delete the last added flame
+            newFlame->deleteLater();
+            return true;
+        }
+        else if (typeid(**i)==typeid(powerup))
+            flame_with_powerup_collision(*i);
+    }
     return false;
 }
 
-bool game::is_chest(const QGraphicsItem * const item)
+void game::flame_with_chest_collision(QGraphicsItem *item)
 {
-    for (auto i=chests.begin() ; i!=chests.end() ; i++)
-        if ((*i)==item)
-            return true;
-    return false;
+    chest* c=static_cast<chest*>(item);
+    //if a chest isn't already in process of explosion
+    if (!c->in_process_of_destruction())
+    {
+        chests.removeOne(c);
+        c->explode();
+    }
+}
+
+void game::flame_with_powerup_collision(QGraphicsItem *item)
+{
+    powerup* power=static_cast<powerup*>(item);
+    //if the powerup isn't under chest then it will be destroyed
+    if (power->is_pickable())
+        delete power;
+    else
+        //item is under chest, but this chest will be destroyed by current flame so mark this powerup as not longer being under chest
+        power->set_as_pickable();
 }
 
 //KEY EVENTS

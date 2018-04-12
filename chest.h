@@ -12,11 +12,13 @@ struct obstacle : public QGraphicsPixmapItem
 
 class chest : public QObject, public QGraphicsPixmapItem
 {
-    friend class game;
     Q_OBJECT
 public:
     chest();
     void explode();
+
+    //whether bomb is currently exploding
+    bool in_process_of_destruction();
 
     static void load_pixmaps();
 

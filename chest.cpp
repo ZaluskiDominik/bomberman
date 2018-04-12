@@ -32,6 +32,7 @@ void chest::free_pixmaps()
 
 void chest::explode()
 {
+    inDestruction=true;
     //create new chest that will be placed under explosion
     prevChest=new QGraphicsPixmapItem(pixmap());
     prevChest->setPos(pos());
@@ -39,6 +40,11 @@ void chest::explode()
 
     setPixmap(explodePixmaps[explodeStage]);
     timer.start(40);
+}
+
+bool chest::in_process_of_destruction()
+{
+    return inDestruction;
 }
 
 void chest::onExplodeTimeout()

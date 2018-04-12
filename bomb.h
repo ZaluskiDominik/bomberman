@@ -14,21 +14,21 @@ class bomb : public QObject, public QGraphicsPixmapItem
 public:
     bomb(QPoint pos, const int explosionRange, const QGraphicsItem* const owner, QGraphicsScene* scene);
 
+    //compute point where bomb should be placed
+    static QPoint calculate_bomb_pos(QPoint pos);
+
     //list of players that aren't collideable for this bomb
     QList<QGraphicsItem*> playersInside;
 
     //player who placed the bomb
     const QGraphicsItem* const whoseBomb;
 
-    //compute point where bomb should be placed
-    static QPoint calculate_bomb_pos(QPoint pos);
-
     static int movingDistance;
 
     void push_bomb(int moveTime, QPoint direction);
 
-    void instant_explode();
-
+    //detonate the bomb
+    void explode();
 
 private:
     //time in miliseconds till bomb explode
@@ -54,16 +54,15 @@ private:
     //add players to playerInside list if they are colliding with the bomb during its creating
     inline void mark_players_inside();
 
-    void explode();
-
 private slots:
     void onExplodeTimeout();
     void onPushTimeout();
 
+    //after sound comes to end delete this bomb from memory
     void onMusicStateChanged(QMediaPlayer::State state);
 
 signals:
-    //detonate the bomb
+    //send signal to player and game classes about bomb detonation
     void bombExploded();
 
 };
